@@ -38,7 +38,7 @@ ephemeral coordination and caching, and Mastra as the workflow engine for asynch
 processing.
 
 ```text
-signal-forge/
+feed-plex/
 ├── apps/
 │   ├── web/                   # Frontend only
 │   │   ├── TanStack Start
