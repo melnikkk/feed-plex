@@ -1,0 +1,20 @@
+export const cosineSimilarity = (a: Array<number>, b: Array<number>): number => {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (normA === 0 || normB === 0) {
+    return 0;
+  }
+
+  const similarity = dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+
+  // Negative similarity has no meaningful interpretation as "relevance".
+  return Math.max(0, similarity);
+};
