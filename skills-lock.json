@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "good-readme": {
+      "source": "evilmartians.com/agent-skills",
+      "sourceType": "url",
+      "skillPath": "good-readme/SKILL.md",
+      "computedHash": "be284e69d5c41cf125d4ce54f34ea6025a6de00f6269d9a091af3a217e360cd2"
+    },
+    "mastra": {
+      "source": "mastra-ai/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mastra/SKILL.md",
+      "computedHash": "6482dad39fb72d1fe9d02078c15c3ee708774fd026a8557b4c7dc37fb554977a"
+    },
+    "show-me": {
+      "source": "humanlayer/skills",
+      "sourceType": "github",
+      "skillPath": "plugins/show-me/skills/show-me/SKILL.md",
+      "computedHash": "de32a72f802801f08a84641b467f2c6306d35a58ce5e59ea607ac3a993a18c91"
+    }
+  }
+}
