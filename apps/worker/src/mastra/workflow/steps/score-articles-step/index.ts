@@ -1,0 +1,100 @@
+import { createStep } from "@mastra/core/workflows";
+import { embedMany } from "ai";
+import { z } from "zod";
+import { Article, articleSchema } from "../../shared/schemas/articleSchema";
+import { Interest, interestSchema } from "../../shared/schemas/interestSchema";
+import { rankedArticleSchema } from "../../shared/schemas/rankedArticleSchema";
+import { geminiEmbedding } from "../../../models";
+import { cosineSimilarity } from "./similarity";
+import { computeFreshnessScore } from "./freshness";
+import { computeKeywordMatchRatio } from "./lexical";
+import { weightedAverage } from "./weightedProfile";
+import {
+  SCORE_WEIGHTS,
+  DEFAULT_EXPLICIT_FEEDBACK,
+  DEFAULT_NOVELTY_PENALTY,
+  DEFAULT_DIVERSITY_ADJUSTMENT,
+  RELEVANCE_THRESHOLD,
+} from "./constants";
+
+const interestEmbeddingText = (interest: Interest): string =>
+  [interest.topic, ...interest.keywords].join(", ");
+
+const articleEmbeddingText = (article: Article): string =>
+  `${article.title}\n${article.summary}`;
+
+const embedTexts = async (values: Array<string>): Promise<Array<Array<number>>> => {
+  if (values.length === 0) return [];
+
+  const { embeddings } = await embedMany({ model: geminiEmbedding, values });
+
+  return embeddings;
+};
+
+export const scoreArticlesStep = createStep({
+  id: "score-articles",
+  inputSchema: z.object({
+    articles: z.array(articleSchema),
+    interests: z.array(interestSchema),
+    sourceAffinity: z.number(),
+  }),
+  outputSchema: z.object({
+    rankedArticles: z.array(rankedArticleSchema),
+  }),
+  execute: async ({ inputData }) => {
+    const { articles, interests, sourceAffinity } = inputData;
+
+    const interestsMissingEmbedding = interests.filter(
+      (interest) => !interest.embedding,
+    );
+    const computedInterestEmbeddings = await embedTexts(
+      interestsMissingEmbedding.map(interestEmbeddingText),
+    );
+
+    let nextComputedEmbedding = 0;
+    const interestsWithEmbeddings: Array<Interest & { embedding: Array<number> }> =
+      interests.map((interest) =>
+        interest.embedding
+          ? { ...interest, embedding: interest.embedding }
+          : { ...interest, embedding: computedInterestEmbeddings[nextComputedEmbedding++] },
+      );
+
+    const articleEmbeddings = await embedTexts(articles.map(articleEmbeddingText));
+
+    const rankedArticles = articles
+      .map((article, index) => {
+        const articleEmbedding = articleEmbeddings[index] ?? [];
+        const articleText = articleEmbeddingText(article);
+
+        const semanticSimilarity = weightedAverage(interestsWithEmbeddings, (interest) =>
+          cosineSimilarity(interest.embedding, articleEmbedding),
+        );
+        const lexicalScore = weightedAverage(interests, (interest) =>
+          computeKeywordMatchRatio(articleText, interest.keywords),
+        );
+        const freshnessScore = computeFreshnessScore(article.publishedAt);
+
+        const breakdown = {
+          semanticSimilarity,
+          lexicalScore,
+          freshnessScore,
+          sourceAffinity,
+          noveltyPenalty: DEFAULT_NOVELTY_PENALTY,
+          diversityAdjustment: DEFAULT_DIVERSITY_ADJUSTMENT,
+        };
+
+        const score =
+          SCORE_WEIGHTS.semanticSimilarity * semanticSimilarity +
+          SCORE_WEIGHTS.lexicalScore * lexicalScore +
+          SCORE_WEIGHTS.freshnessScore * freshnessScore +
+          SCORE_WEIGHTS.sourceAffinity * sourceAffinity +
+          SCORE_WEIGHTS.explicitFeedback * DEFAULT_EXPLICIT_FEEDBACK;
+
+        return { article, score, breakdown };
+      })
+      .filter((ranked) => ranked.score >= RELEVANCE_THRESHOLD)
+      .sort((a, b) => b.score - a.score);
+
+    return { rankedArticles };
+  },
+});
