@@ -5,6 +5,7 @@ export const articleSchema = z.object({
   link: z.string(),
   summary: z.string(),
   publishedAt: z.string(),
+  sourceUrl: z.url(),
 });
 
 export type Article = z.infer<typeof articleSchema>;
