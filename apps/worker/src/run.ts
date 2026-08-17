@@ -1,11 +1,11 @@
 import "dotenv/config";
 import "./env";
 import { relevantArticlesWorkflow } from "./mastra/workflow";
-import { interests, FEED_URL, SOURCE_AFFINITY } from "./constants";
+import { interests, SOURCES } from "./constants";
 
 const run = await relevantArticlesWorkflow.createRun();
 const result = await run.start({
-  inputData: { feedUrl: FEED_URL, sourceAffinity: SOURCE_AFFINITY, interests },
+  inputData: { sources: SOURCES, interests },
 });
 
 if (result.status !== "success") {
@@ -16,6 +16,7 @@ if (result.status !== "success") {
 for (const { article, score, breakdown } of result.result.rankedArticles) {
   console.log(`${score.toFixed(3)}  ${article.link}`);
   console.log(`  ${article.title}`);
+  console.log(`  source=${article.sourceUrl}`);
   console.log(
     `  semantic=${breakdown.semanticSimilarity.toFixed(3)} lexical=${breakdown.lexicalScore.toFixed(3)} freshness=${breakdown.freshnessScore.toFixed(3)} source=${breakdown.sourceAffinity.toFixed(3)}`,
   );

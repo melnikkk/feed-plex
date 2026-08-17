@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { interestSchema } from "./interestSchema";
+import { interestSchema } from "../../../schemas/interestSchema";
+import { sourceSchema } from "../../../schemas/sourceSchema";
 
 export const workflowInputDataSchema = z.object({
-  feedUrl: z.url(),
-  sourceAffinity: z.number().min(0).max(1),
+  sources: z.array(sourceSchema).min(1),
   interests: z.array(interestSchema),
 });
 

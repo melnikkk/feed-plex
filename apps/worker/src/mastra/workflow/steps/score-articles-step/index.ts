@@ -1,9 +1,10 @@
 import { createStep } from "@mastra/core/workflows";
 import { embedMany } from "ai";
 import { z } from "zod";
-import { Article, articleSchema } from "../../shared/schemas/articleSchema";
-import { Interest, interestSchema } from "../../shared/schemas/interestSchema";
-import { rankedArticleSchema } from "../../shared/schemas/rankedArticleSchema";
+import { Article, articleSchema } from "../../../shared/schemas/articleSchema";
+import { Interest, interestSchema } from "../../../../schemas/interestSchema";
+import { rankedArticleSchema } from "../../../shared/schemas/rankedArticleSchema";
+import { sourceSchema } from "../../../../schemas/sourceSchema";
 import { geminiEmbedding } from "../../../models";
 import { cosineSimilarity } from "./similarity";
 import { computeFreshnessScore } from "./freshness";
@@ -15,13 +16,16 @@ import {
   DEFAULT_NOVELTY_PENALTY,
   DEFAULT_DIVERSITY_ADJUSTMENT,
   RELEVANCE_THRESHOLD,
+  ARTICLE_EMBEDDING_SUMMARY_MAX_LENGTH,
 } from "./constants";
 
 const interestEmbeddingText = (interest: Interest): string =>
   [interest.topic, ...interest.keywords].join(", ");
 
+const articleText = (article: Article): string => `${article.title}\n${article.summary}`;
+
 const articleEmbeddingText = (article: Article): string =>
-  `${article.title}\n${article.summary}`;
+  articleText(article).slice(0, ARTICLE_EMBEDDING_SUMMARY_MAX_LENGTH);
 
 const embedTexts = async (values: Array<string>): Promise<Array<Array<number>>> => {
   if (values.length === 0) return [];
@@ -36,13 +40,17 @@ export const scoreArticlesStep = createStep({
   inputSchema: z.object({
     articles: z.array(articleSchema),
     interests: z.array(interestSchema),
-    sourceAffinity: z.number(),
+    sources: z.array(sourceSchema),
   }),
   outputSchema: z.object({
     rankedArticles: z.array(rankedArticleSchema),
   }),
   execute: async ({ inputData }) => {
-    const { articles, interests, sourceAffinity } = inputData;
+    const { articles, interests, sources } = inputData;
+
+    const sourceAffinityByUrl = new Map(
+      sources.map((source) => [source.url, source.sourceAffinity]),
+    );
 
     const interestsMissingEmbedding = interests.filter(
       (interest) => !interest.embedding,
@@ -64,15 +72,15 @@ export const scoreArticlesStep = createStep({
     const rankedArticles = articles
       .map((article, index) => {
         const articleEmbedding = articleEmbeddings[index] ?? [];
-        const articleText = articleEmbeddingText(article);
 
         const semanticSimilarity = weightedAverage(interestsWithEmbeddings, (interest) =>
           cosineSimilarity(interest.embedding, articleEmbedding),
         );
         const lexicalScore = weightedAverage(interests, (interest) =>
-          computeKeywordMatchRatio(articleText, interest.keywords),
+          computeKeywordMatchRatio(articleText(article), interest.keywords),
         );
         const freshnessScore = computeFreshnessScore(article.publishedAt);
+        const sourceAffinity = sourceAffinityByUrl.get(article.sourceUrl) ?? 0;
 
         const breakdown = {
           semanticSimilarity,

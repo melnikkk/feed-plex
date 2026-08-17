@@ -1,6 +1,7 @@
-export const FEED_URL = "https://master.dev/blog/feed/";
+import { Source } from "../schemas/sourceSchema";
 
-// How much this source is trusted relative to others, independent of any
-// single article's content. Only one source exists today, so this is fixed;
-// it becomes meaningful once multiple sources are configurable.
-export const SOURCE_AFFINITY = 1;
+export const SOURCES: Array<Source> = [
+  { url: "https://master.dev/blog/feed/", sourceAffinity: 1 },
+  { url: "https://evilmartians.com/chronicles.atom", sourceAffinity: 1 },
+  { url: "https://martinfowler.com/feed.atom", sourceAffinity: 1 },
+];

@@ -1,4 +1,4 @@
-import { Interest } from "../mastra/workflow/shared/schemas/interestSchema";
+import { Interest } from "../schemas/interestSchema";
 
 export const interests: Array<Interest> = [
   {

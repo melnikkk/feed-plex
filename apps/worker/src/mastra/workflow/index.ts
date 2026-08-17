@@ -4,8 +4,8 @@ import { scoreArticlesStep } from "./steps/score-articles-step";
 import {
   WorkflowInputData,
   workflowInputDataSchema,
-} from "./shared/schemas/workflowInputSchema";
-import { workflowOutputSchema } from "./shared/schemas/workflowOutputSchema";
+} from "../shared/schemas/workflowInputSchema";
+import { workflowOutputSchema } from "../shared/schemas/workflowOutputSchema";
 
 export const relevantArticlesWorkflow = createWorkflow({
   id: "relevant-articles-workflow",
@@ -21,7 +21,7 @@ relevantArticlesWorkflow
     return {
       articles: inputData.articles,
       interests: initData.interests,
-      sourceAffinity: initData.sourceAffinity,
+      sources: initData.sources,
     };
   })
   .then(scoreArticlesStep)
