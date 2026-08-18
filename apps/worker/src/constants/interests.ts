@@ -1,4 +1,4 @@
-import { Interest } from '../schemas/interestSchema';
+import type { Interest } from '@/schemas/interestSchema';
 
 export const interests: Array<Interest> = [
   {

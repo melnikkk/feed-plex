@@ -1,4 +1,4 @@
-import { Article } from '../../../shared/schemas/articleSchema';
+import type { Article } from '@/mastra/shared/schemas/articleSchema';
 
 const toTimestamp = (publishedAt: string): number => {
   const ms = Date.parse(publishedAt);

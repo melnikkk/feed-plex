@@ -1,11 +1,13 @@
 import { createStep } from '@mastra/core/workflows';
 import { embedMany } from 'ai';
 import { z } from 'zod';
-import { Article, articleSchema } from '../../../shared/schemas/articleSchema';
-import { Interest, interestSchema } from '../../../../schemas/interestSchema';
-import { rankedArticleSchema } from '../../../shared/schemas/rankedArticleSchema';
-import { sourceSchema } from '../../../../schemas/sourceSchema';
-import { geminiEmbedding } from '../../../models';
+import type { Article } from '@/mastra/shared/schemas/articleSchema';
+import { articleSchema } from '@/mastra/shared/schemas/articleSchema';
+import type { Interest } from '@/schemas/interestSchema';
+import { interestSchema } from '@/schemas/interestSchema';
+import { rankedArticleSchema } from '@/mastra/shared/schemas/rankedArticleSchema';
+import { sourceSchema } from '@/schemas/sourceSchema';
+import { geminiEmbedding } from '@/mastra/models';
 import { cosineSimilarity } from './similarity';
 import { computeFreshnessScore } from './freshness';
 import { computeKeywordMatchRatio } from './lexical';

@@ -11,7 +11,7 @@ Point it at your blogs, RSS/Atom feeds, sitemaps, or archive pages. It fetches n
 
 ## Status
 
-FeedPlex is a personal research project. [ADR 001](documentation/adr/001-monorepo-and-modular-monolith-foundation.md) describes the target architecture; `apps/web` and `apps/api` don't exist yet.
+FeedPlex is a personal research project. [ADR 001](documentation/adr/001-monorepo-and-modular-monolith-foundation.md) describes the target architecture; `apps/api` is a bare Fastify scaffold with a health endpoint only, and `apps/web` doesn't exist yet.
 
 **Running today:** `apps/worker`'s first vertical slice — a Mastra workflow that fetches one hardcoded Atom feed and ranks every article against a weighted interest profile with a transparent, content-based score. No LLM judgment call decides relevance: each score is a weighted sum of embedding-based semantic similarity, keyword overlap, freshness, and source affinity, so you can see why an article ranked where it did. See [Getting started](#run-the-relevant-articles-workflow) to run it.
 
@@ -27,7 +27,7 @@ cd feed-plex
 pnpm install
 ```
 
-This installs the workspace root and every package under `apps/*` — currently just `apps/worker`, the Mastra-based background worker described in [ADR 001](documentation/adr/001-monorepo-and-modular-monolith-foundation.md). `apps/web` and `apps/api` aren't scaffolded yet.
+This installs the workspace root and every package under `apps/*` — currently `apps/worker`, the Mastra-based background worker described in [ADR 001](documentation/adr/001-monorepo-and-modular-monolith-foundation.md), and `apps/api`, a bare Fastify scaffold (health endpoint only, no business logic yet). `apps/web` isn't scaffolded yet.
 
 ### Run the relevant-articles workflow
 
@@ -47,4 +47,4 @@ Each line of output is a ranked article with its score breakdown:
 
 The feed source, interest profile, and scoring weights are all hardcoded for
 now — see `apps/worker/src/constants/interests.ts` and
-`apps/worker/src/mastra/workflow/steps/score-articles-step/constants.ts`.
+`apps/worker/src/mastra/workflow/steps/scoreArticlesStep/constants.ts`.

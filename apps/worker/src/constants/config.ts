@@ -1,4 +1,4 @@
-import { Source } from '../schemas/sourceSchema';
+import type { Source } from '@/schemas/sourceSchema';
 
 export const SOURCES: Array<Source> = [
   { url: 'https://master.dev/blog/feed/', sourceAffinity: 1 },
