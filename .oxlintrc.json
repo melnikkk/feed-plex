@@ -7,7 +7,11 @@
     "perf": "warn"
   },
   "rules": {
-    "import/no-unassigned-import": "off"
+    "import/no-unassigned-import": "off",
+    "typescript/no-explicit-any": "error",
+    "typescript/consistent-type-imports": "warn",
+    "unicorn/filename-case": ["warn", { "case": "camelCase" }],
+    "import/no-relative-parent-imports": "warn"
   },
   "ignorePatterns": ["**/dist/**", "**/.turbo/**", ".agents/**", ".claude/**"]
 }

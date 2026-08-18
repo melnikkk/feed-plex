@@ -1,8 +1,9 @@
 import { createWorkflow } from '@mastra/core/workflows';
-import { fetchFeedArticlesStep } from './steps/fetch-feed-articles-step';
-import { scoreArticlesStep } from './steps/score-articles-step';
-import { WorkflowInputData, workflowInputDataSchema } from '../shared/schemas/workflowInputSchema';
-import { workflowOutputSchema } from '../shared/schemas/workflowOutputSchema';
+import { fetchFeedArticlesStep } from './steps/fetchFeedArticlesStep';
+import { scoreArticlesStep } from './steps/scoreArticlesStep';
+import type { WorkflowInputData } from '@/mastra/shared/schemas/workflowInputSchema';
+import { workflowInputDataSchema } from '@/mastra/shared/schemas/workflowInputSchema';
+import { workflowOutputSchema } from '@/mastra/shared/schemas/workflowOutputSchema';
 
 export const relevantArticlesWorkflow = createWorkflow({
   id: 'relevant-articles-workflow',
