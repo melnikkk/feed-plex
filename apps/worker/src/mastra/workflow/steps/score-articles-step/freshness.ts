@@ -1,11 +1,8 @@
-import { FRESHNESS_HALF_LIFE_DAYS } from "./constants";
+import { FRESHNESS_HALF_LIFE_DAYS } from './constants';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export const computeFreshnessScore = (
-  publishedAt: string,
-  now: Date = new Date(),
-): number => {
+export const computeFreshnessScore = (publishedAt: string, now: Date = new Date()): number => {
   const publishedAtMs = Date.parse(publishedAt);
 
   if (Number.isNaN(publishedAtMs)) {

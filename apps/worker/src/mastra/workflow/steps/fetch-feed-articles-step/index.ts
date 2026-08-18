@@ -1,21 +1,21 @@
-import { createStep } from "@mastra/core/workflows";
-import Parser from "rss-parser";
-import { z } from "zod";
-import { articleSchema } from "../../../shared/schemas/articleSchema";
-import { Source, sourceSchema } from "../../../../schemas/sourceSchema";
-import { MAX_ARTICLES_PER_SOURCE, MAX_ARTICLE_AGE_DAYS } from "./constants";
-import { dedupeArticlesBySourceAffinity } from "./dedupe";
-import { takeMostRecentArticles } from "./limit";
-import { filterArticlesByMaxAge } from "./recency";
+import { createStep } from '@mastra/core/workflows';
+import Parser from 'rss-parser';
+import { z } from 'zod';
+import { articleSchema } from '../../../shared/schemas/articleSchema';
+import { Source, sourceSchema } from '../../../../schemas/sourceSchema';
+import { MAX_ARTICLES_PER_SOURCE, MAX_ARTICLE_AGE_DAYS } from './constants';
+import { dedupeArticlesBySourceAffinity } from './dedupe';
+import { takeMostRecentArticles } from './limit';
+import { filterArticlesByMaxAge } from './recency';
 
 const fetchSourceArticles = async (source: Source) => {
   const { items = [] } = await new Parser().parseURL(source.url);
 
   const articles = items.map((item) => ({
-    title: item.title ?? "",
-    link: item.link ?? "",
-    summary: item.summary ?? item.contentSnippet ?? "",
-    publishedAt: item.isoDate ?? item.pubDate ?? "",
+    title: item.title ?? '',
+    link: item.link ?? '',
+    summary: item.summary ?? item.contentSnippet ?? '',
+    publishedAt: item.isoDate ?? item.pubDate ?? '',
     sourceUrl: source.url,
   }));
 
@@ -23,7 +23,7 @@ const fetchSourceArticles = async (source: Source) => {
 };
 
 export const fetchFeedArticlesStep = createStep({
-  id: "fetch-feed-articles",
+  id: 'fetch-feed-articles',
   inputSchema: z.object({
     sources: z.array(sourceSchema),
   }),
@@ -36,11 +36,8 @@ export const fetchFeedArticlesStep = createStep({
     const results = await Promise.allSettled(sources.map(fetchSourceArticles));
 
     const articles = results.flatMap((result, index) => {
-      if (result.status === "rejected") {
-        console.warn(
-          `Failed to fetch feed ${sources[index].url}:`,
-          result.reason,
-        );
+      if (result.status === 'rejected') {
+        console.warn(`Failed to fetch feed ${sources[index].url}:`, result.reason);
         return [];
       }
 

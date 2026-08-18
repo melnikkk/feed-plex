@@ -1,4 +1,4 @@
-import { Article } from "../../../shared/schemas/articleSchema";
+import { Article } from '../../../shared/schemas/articleSchema';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

@@ -1,15 +1,15 @@
-import "dotenv/config";
-import "./env";
-import { relevantArticlesWorkflow } from "./mastra/workflow";
-import { interests, SOURCES } from "./constants";
+import 'dotenv/config';
+import './env';
+import { relevantArticlesWorkflow } from './mastra/workflow';
+import { interests, SOURCES } from './constants';
 
 const run = await relevantArticlesWorkflow.createRun();
 const result = await run.start({
   inputData: { sources: SOURCES, interests },
 });
 
-if (result.status !== "success") {
-  console.error("Workflow run failed:", result);
+if (result.status !== 'success') {
+  console.error('Workflow run failed:', result);
   process.exit(1);
 }
 

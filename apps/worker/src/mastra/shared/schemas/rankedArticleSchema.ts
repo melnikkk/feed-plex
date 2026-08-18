@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { articleSchema } from "./articleSchema";
-import { articleScoreSchema } from "./articleScoreSchema";
+import { z } from 'zod';
+import { articleSchema } from './articleSchema';
+import { articleScoreSchema } from './articleScoreSchema';
 
 export const rankedArticleSchema = z.object({
   article: articleSchema,

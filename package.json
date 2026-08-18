@@ -1,15 +1,23 @@
 {
   "name": "feed-plex",
   "private": true,
-  "packageManager": "pnpm@11.5.1",
   "scripts": {
     "build": "turbo run build",
-    "dev": "turbo run dev"
+    "dev": "turbo run dev",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint . --fix",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
+    "lefthook": "^2.1.10",
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.79.0",
     "tsx": "^4.23.12",
     "turbo": "^2.10.10",
     "typescript": "^7.0.2"
-  }
+  },
+  "packageManager": "pnpm@11.5.1"
 }

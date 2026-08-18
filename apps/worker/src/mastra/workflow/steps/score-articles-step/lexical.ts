@@ -1,7 +1,4 @@
-export const computeKeywordMatchRatio = (
-  text: string,
-  keywords: Array<string>,
-): number => {
+export const computeKeywordMatchRatio = (text: string, keywords: Array<string>): number => {
   if (keywords.length === 0) {
     return 0;
   }

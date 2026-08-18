@@ -1,3 +1,3 @@
-export * from "./interests";
+export * from './interests';
 
-export * from "./config";
+export * from './config';
