@@ -1,4 +1,4 @@
-import { Article } from "../../../shared/schemas/articleSchema";
+import { Article } from '../../../shared/schemas/articleSchema';
 
 export const dedupeArticlesBySourceAffinity = (
   articles: Array<Article>,

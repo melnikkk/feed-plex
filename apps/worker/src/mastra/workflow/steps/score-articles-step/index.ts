@@ -1,15 +1,15 @@
-import { createStep } from "@mastra/core/workflows";
-import { embedMany } from "ai";
-import { z } from "zod";
-import { Article, articleSchema } from "../../../shared/schemas/articleSchema";
-import { Interest, interestSchema } from "../../../../schemas/interestSchema";
-import { rankedArticleSchema } from "../../../shared/schemas/rankedArticleSchema";
-import { sourceSchema } from "../../../../schemas/sourceSchema";
-import { geminiEmbedding } from "../../../models";
-import { cosineSimilarity } from "./similarity";
-import { computeFreshnessScore } from "./freshness";
-import { computeKeywordMatchRatio } from "./lexical";
-import { weightedAverage } from "./weightedProfile";
+import { createStep } from '@mastra/core/workflows';
+import { embedMany } from 'ai';
+import { z } from 'zod';
+import { Article, articleSchema } from '../../../shared/schemas/articleSchema';
+import { Interest, interestSchema } from '../../../../schemas/interestSchema';
+import { rankedArticleSchema } from '../../../shared/schemas/rankedArticleSchema';
+import { sourceSchema } from '../../../../schemas/sourceSchema';
+import { geminiEmbedding } from '../../../models';
+import { cosineSimilarity } from './similarity';
+import { computeFreshnessScore } from './freshness';
+import { computeKeywordMatchRatio } from './lexical';
+import { weightedAverage } from './weightedProfile';
 import {
   SCORE_WEIGHTS,
   DEFAULT_EXPLICIT_FEEDBACK,
@@ -17,10 +17,10 @@ import {
   DEFAULT_DIVERSITY_ADJUSTMENT,
   RELEVANCE_THRESHOLD,
   ARTICLE_EMBEDDING_SUMMARY_MAX_LENGTH,
-} from "./constants";
+} from './constants';
 
 const interestEmbeddingText = (interest: Interest): string =>
-  [interest.topic, ...interest.keywords].join(", ");
+  [interest.topic, ...interest.keywords].join(', ');
 
 const articleText = (article: Article): string => `${article.title}\n${article.summary}`;
 
@@ -36,7 +36,7 @@ const embedTexts = async (values: Array<string>): Promise<Array<Array<number>>> 
 };
 
 export const scoreArticlesStep = createStep({
-  id: "score-articles",
+  id: 'score-articles',
   inputSchema: z.object({
     articles: z.array(articleSchema),
     interests: z.array(interestSchema),
@@ -52,20 +52,18 @@ export const scoreArticlesStep = createStep({
       sources.map((source) => [source.url, source.sourceAffinity]),
     );
 
-    const interestsMissingEmbedding = interests.filter(
-      (interest) => !interest.embedding,
-    );
+    const interestsMissingEmbedding = interests.filter((interest) => !interest.embedding);
     const computedInterestEmbeddings = await embedTexts(
       interestsMissingEmbedding.map(interestEmbeddingText),
     );
 
     let nextComputedEmbedding = 0;
-    const interestsWithEmbeddings: Array<Interest & { embedding: Array<number> }> =
-      interests.map((interest) =>
+    const interestsWithEmbeddings: Array<Interest & { embedding: Array<number> }> = interests.map(
+      (interest) =>
         interest.embedding
           ? { ...interest, embedding: interest.embedding }
           : { ...interest, embedding: computedInterestEmbeddings[nextComputedEmbedding++] },
-      );
+    );
 
     const articleEmbeddings = await embedTexts(articles.map(articleEmbeddingText));
 
@@ -101,7 +99,7 @@ export const scoreArticlesStep = createStep({
         return { article, score, breakdown };
       })
       .filter((ranked) => ranked.score >= RELEVANCE_THRESHOLD)
-      .sort((a, b) => b.score - a.score);
+      .toSorted((a, b) => b.score - a.score);
 
     return { rankedArticles };
   },

@@ -1,6 +1,7 @@
 # ADR 001: Monorepo and modular monolith foundation
 
 ## Context
+
 FeePlex is a personal research project.
 
 The first product capability is feed intelligence: users subscribe to technical blogs,
@@ -14,14 +15,14 @@ clear module boundaries, durable background processing, observability, testabili
 provenance, and an explicit evolution path.
 
 1. **Interactive serving workload**
-    - User-facing feed reads, source management, profile updates, and later research requests.
-    - Requires predictable latency and stable API behavior.
+   - User-facing feed reads, source management, profile updates, and later research requests.
+   - Requires predictable latency and stable API behavior.
 
 2. **Asynchronous processing workload**
-    - Feed polling, source discovery, article fetching, parsing, canonicalization, deduplication,
-      content extraction, enrichment, embedding, indexing, and reindexing.
-    - Requires retries, idempotency, scheduling, rate limiting, long-running execution,
-      observability, and safe recovery from partial failures.
+   - Feed polling, source discovery, article fetching, parsing, canonicalization, deduplication,
+     content extraction, enrichment, embedding, indexing, and reindexing.
+   - Requires retries, idempotency, scheduling, rate limiting, long-running execution,
+     observability, and safe recovery from partial failures.
 
 A single deployable application would make these workloads harder to isolate and operate.
 Conversely, independently deployable microservices would introduce an unnecessary operational

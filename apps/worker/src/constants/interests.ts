@@ -1,19 +1,19 @@
-import { Interest } from "../schemas/interestSchema";
+import { Interest } from '../schemas/interestSchema';
 
 export const interests: Array<Interest> = [
   {
-    topic: "artificial intelligence",
+    topic: 'artificial intelligence',
     weight: 1,
-    keywords: ["ai", "artificial intelligence", "machine learning", "llm"],
+    keywords: ['ai', 'artificial intelligence', 'machine learning', 'llm'],
   },
   {
-    topic: "software architecture",
+    topic: 'software architecture',
     weight: 0.8,
-    keywords: ["architecture", "system design", "microservices", "monolith"],
+    keywords: ['architecture', 'system design', 'microservices', 'monolith'],
   },
   {
-    topic: "developer tooling",
+    topic: 'developer tooling',
     weight: 0.6,
-    keywords: ["tooling", "developer experience", "cli", "editor", "ide"],
+    keywords: ['tooling', 'developer experience', 'cli', 'editor', 'ide'],
   },
 ];

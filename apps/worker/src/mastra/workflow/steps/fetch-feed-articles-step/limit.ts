@@ -1,4 +1,4 @@
-import { Article } from "../../../shared/schemas/articleSchema";
+import { Article } from '../../../shared/schemas/articleSchema';
 
 const toTimestamp = (publishedAt: string): number => {
   const ms = Date.parse(publishedAt);
@@ -10,6 +10,6 @@ export const takeMostRecentArticles = (
   articles: Array<Article>,
   maxCount: number,
 ): Array<Article> =>
-  [...articles]
-    .sort((a, b) => toTimestamp(b.publishedAt) - toTimestamp(a.publishedAt))
+  articles
+    .toSorted((a, b) => toTimestamp(b.publishedAt) - toTimestamp(a.publishedAt))
     .slice(0, maxCount);
