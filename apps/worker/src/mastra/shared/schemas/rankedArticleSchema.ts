@@ -7,3 +7,5 @@ export const rankedArticleSchema = z.object({
   score: z.number(),
   breakdown: articleScoreSchema,
 });
+
+export type RankedArticle = z.infer<typeof rankedArticleSchema>;

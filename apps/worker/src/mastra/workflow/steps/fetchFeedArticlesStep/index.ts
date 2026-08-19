@@ -1,6 +1,7 @@
 import { createStep } from '@mastra/core/workflows';
 import Parser from 'rss-parser';
 import { z } from 'zod';
+import { logger } from '@/logger';
 import { articleSchema } from '@/mastra/shared/schemas/articleSchema';
 import type { Source } from '@/schemas/sourceSchema';
 import { sourceSchema } from '@/schemas/sourceSchema';
@@ -38,7 +39,7 @@ export const fetchFeedArticlesStep = createStep({
 
     const articles = results.flatMap((result, index) => {
       if (result.status === 'rejected') {
-        console.warn(`Failed to fetch feed ${sources[index].url}:`, result.reason);
+        logger.warn({ err: result.reason }, `Failed to fetch feed ${sources[index].url}`);
         return [];
       }
 

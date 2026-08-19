@@ -3,7 +3,9 @@ import { z } from 'zod';
 
 export const env = createEnv({
   server: {
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
     GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1),
+    REDIS_URL: z.url(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
