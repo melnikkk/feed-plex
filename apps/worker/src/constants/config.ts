@@ -1,4 +1,4 @@
-import type { Source } from '@/schemas/sourceSchema';
+import type { Source } from '@feed-plex/contracts';
 
 export const SOURCES: Array<Source> = [
   { url: 'https://master.dev/blog/feed/', sourceAffinity: 1 },

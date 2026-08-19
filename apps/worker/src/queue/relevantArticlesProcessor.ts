@@ -1,7 +1,7 @@
+import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-plex/contracts';
 import type { Job } from 'bullmq';
 import { relevantArticlesWorkflow } from '@/mastra/workflow';
 import { interests as defaultInterests, SOURCES as defaultSources } from '@/constants';
-import type { RelevantArticlesJobData, RelevantArticlesJobResult } from './relevantArticlesQueue';
 
 export const processRelevantArticlesJob = async (
   job: Job<RelevantArticlesJobData>,

@@ -1,4 +1,4 @@
-import type { Interest } from '@/schemas/interestSchema';
+import type { Interest } from '@feed-plex/contracts';
 
 export const interests: Array<Interest> = [
   {

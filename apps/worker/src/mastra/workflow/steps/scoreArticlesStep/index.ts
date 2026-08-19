@@ -1,12 +1,13 @@
 import { createStep } from '@mastra/core/workflows';
+import type { Article, Interest } from '@feed-plex/contracts';
+import {
+  articleSchema,
+  interestSchema,
+  rankedArticleSchema,
+  sourceSchema,
+} from '@feed-plex/contracts';
 import { embedMany } from 'ai';
 import { z } from 'zod';
-import type { Article } from '@/mastra/shared/schemas/articleSchema';
-import { articleSchema } from '@/mastra/shared/schemas/articleSchema';
-import type { Interest } from '@/schemas/interestSchema';
-import { interestSchema } from '@/schemas/interestSchema';
-import { rankedArticleSchema } from '@/mastra/shared/schemas/rankedArticleSchema';
-import { sourceSchema } from '@/schemas/sourceSchema';
 import { geminiEmbedding } from '@/mastra/models';
 import { cosineSimilarity } from './similarity';
 import { computeFreshnessScore } from './freshness';

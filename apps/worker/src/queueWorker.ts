@@ -1,10 +1,10 @@
 import 'dotenv/config';
 import './env';
+import { RELEVANT_ARTICLES_QUEUE_NAME } from '@feed-plex/contracts';
 import { Worker } from 'bullmq';
 import { logger } from '@/logger';
 import { createQueueConnection } from '@/queue/connection';
 import { processRelevantArticlesJob } from '@/queue/relevantArticlesProcessor';
-import { RELEVANT_ARTICLES_QUEUE_NAME } from '@/queue/relevantArticlesQueue';
 
 const worker = new Worker(RELEVANT_ARTICLES_QUEUE_NAME, processRelevantArticlesJob, {
   connection: createQueueConnection(),

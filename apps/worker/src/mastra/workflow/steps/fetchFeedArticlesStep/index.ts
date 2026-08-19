@@ -1,10 +1,9 @@
 import { createStep } from '@mastra/core/workflows';
+import type { Source } from '@feed-plex/contracts';
+import { articleSchema, sourceSchema } from '@feed-plex/contracts';
 import Parser from 'rss-parser';
 import { z } from 'zod';
 import { logger } from '@/logger';
-import { articleSchema } from '@/mastra/shared/schemas/articleSchema';
-import type { Source } from '@/schemas/sourceSchema';
-import { sourceSchema } from '@/schemas/sourceSchema';
 import { MAX_ARTICLES_PER_SOURCE, MAX_ARTICLE_AGE_DAYS } from './constants';
 import { dedupeArticlesBySourceAffinity } from './dedupe';
 import { takeMostRecentArticles } from './limit';

@@ -1,13 +1,8 @@
+import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-plex/contracts';
+import { RELEVANT_ARTICLES_QUEUE_NAME } from '@feed-plex/contracts';
 import { Queue } from 'bullmq';
 import { createQueueConnection } from '@/queue/connection';
-import {
-  ONE_HOUR_SECONDS,
-  RELEVANT_ARTICLES_QUEUE_NAME,
-} from '@/routes/relevantArticlesRuns/constants';
-import type {
-  RelevantArticlesJobData,
-  RelevantArticlesJobResult,
-} from '@/routes/relevantArticlesRuns/types';
+import { ONE_HOUR_SECONDS } from '@/routes/relevantArticlesRuns/constants';
 
 export const relevantArticlesQueue = new Queue<RelevantArticlesJobData, RelevantArticlesJobResult>(
   RELEVANT_ARTICLES_QUEUE_NAME,

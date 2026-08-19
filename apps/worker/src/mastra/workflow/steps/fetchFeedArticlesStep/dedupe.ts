@@ -1,4 +1,4 @@
-import type { Article } from '@/mastra/shared/schemas/articleSchema';
+import type { Article } from '@feed-plex/contracts';
 
 export const dedupeArticlesBySourceAffinity = (
   articles: Array<Article>,
