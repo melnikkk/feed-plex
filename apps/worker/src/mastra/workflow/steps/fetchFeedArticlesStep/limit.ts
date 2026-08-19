@@ -1,4 +1,4 @@
-import type { Article } from '@/mastra/shared/schemas/articleSchema';
+import type { Article } from '@feed-plex/contracts';
 
 const toTimestamp = (publishedAt: string): number => {
   const ms = Date.parse(publishedAt);

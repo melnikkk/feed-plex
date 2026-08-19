@@ -1,4 +1,4 @@
-import type { Article } from '@/mastra/shared/schemas/articleSchema';
+import type { Article } from '@feed-plex/contracts';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

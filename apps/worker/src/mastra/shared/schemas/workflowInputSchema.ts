@@ -1,6 +1,5 @@
+import { interestSchema, sourceSchema } from '@feed-plex/contracts';
 import { z } from 'zod';
-import { interestSchema } from '@/schemas/interestSchema';
-import { sourceSchema } from '@/schemas/sourceSchema';
 
 export const workflowInputDataSchema = z.object({
   sources: z.array(sourceSchema).min(1),
