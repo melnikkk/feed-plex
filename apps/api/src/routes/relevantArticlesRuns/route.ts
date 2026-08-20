@@ -1,3 +1,4 @@
+import { getSuggestionRunResult } from '@feed-plex/database';
 import type { FastifyPluginAsync } from 'fastify';
 import { relevantArticlesQueue } from '@/routes/relevantArticlesRuns/queue';
 import { createRunBodySchema } from '@/routes/relevantArticlesRuns/schema';
@@ -19,6 +20,14 @@ export const relevantArticlesRunsRoutes: FastifyPluginAsync = async (app) => {
     const job = await relevantArticlesQueue.getJob(request.params.jobId);
 
     if (!job) {
+      if (app.db) {
+        const result = await getSuggestionRunResult(app.db, request.params.jobId);
+
+        if (result) {
+          return reply.send({ jobId: request.params.jobId, status: 'completed', result });
+        }
+      }
+
       return reply.code(404).send({ error: 'Job not found' });
     }
 

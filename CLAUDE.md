@@ -25,6 +25,7 @@ pnpm format:check                   # oxfmt --check .
 pnpm --filter @feed-plex/worker typecheck   # tsc --noEmit, per-package (no root typecheck script)
 pnpm --filter @feed-plex/api typecheck
 pnpm --filter @feed-plex/contracts typecheck
+pnpm --filter @feed-plex/database typecheck
 
 pnpm --filter @feed-plex/worker start        # one-shot: run relevant-articles workflow against hardcoded feed/interests
 pnpm --filter @feed-plex/worker dev          # tsx watch, BullMQ queue consumer (queueWorker.ts)
@@ -33,15 +34,22 @@ pnpm --filter @feed-plex/worker queue:worker # same consumer, no watch
 pnpm --filter @feed-plex/api dev             # Fastify API with watch
 pnpm --filter @feed-plex/api start
 
-docker compose up -d redis          # Redis required for the API<->worker job queue
+pnpm --filter @feed-plex/database db:generate  # generate Drizzle migrations from schema
+pnpm --filter @feed-plex/database db:migrate   # run pending migrations
+
+docker compose up -d redis postgres        # Redis and Postgres required
+docker compose down                         # shut down services
 ```
 
 There is no test runner configured yet — don't assume one exists.
 
 Each app needs its own `.env` (copy from `.env.example` in `apps/worker/` and `apps/api/`).
 `apps/worker` requires `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini, for embeddings) and `REDIS_URL`;
-`apps/api` requires `REDIS_URL`, `PORT`, `HOST`. Env is validated at startup via `@t3-oss/env-core`
-in each app's `src/env.ts` — add new vars there, not by reading `process.env` directly.
+`apps/api` requires `REDIS_URL`, `PORT`, `HOST`. Both apps accept an optional `DATABASE_URL`
+(format: `postgresql://user:password@host:port/database`) — with `docker-compose`, the default
+Postgres credentials are `postgresql://feedplex:feedplex@localhost:5432/feedplex`. Env is
+validated at startup via `@t3-oss/env-core` in each app's `src/env.ts` — add new vars there, not
+by reading `process.env` directly.
 
 `pnpm prepare` installs lefthook; the pre-commit hook runs oxlint + oxfmt on staged files
 (`stage_fixed: true` for format, so formatting fixes get re-staged automatically).
@@ -61,20 +69,22 @@ Three independently runnable apps under `apps/*`, shared code under `packages/*`
   stdout) and `queueWorker.ts` (long-running BullMQ `Worker` that consumes jobs enqueued by the
   API and invokes the same workflow).
 - **`apps/web`** — does not exist yet. Planned: TanStack Start/React/Router/Query/Form.
-- **`packages/contracts`** — the only shared package so far (`@feed-plex/contracts`). Holds Zod
-  schemas and types shared across `api`/`worker`: `Article`, `ArticleScore`, `RankedArticle`,
-  `Interest`, `Source`, and the `RelevantArticlesJobData`/`RelevantArticlesJobResult` job
-  contract plus the `RELEVANT_ARTICLES_QUEUE_NAME` BullMQ queue name constant both apps import
-  from. Other packages listed in ADR 001's target layout (`domain`, `application`, `database`,
-  `providers`, `ranking`, `evaluation`, `observability`, `ui`) don't exist yet — don't assume
-  their presence.
+- **`packages/contracts`** — shared types across `api`/`worker`: `Article`, `ArticleScore`,
+  `RankedArticle`, `Interest`, `Source`, and the `RelevantArticlesJobData`/`RelevantArticlesJobResult`
+  job contract plus the `RELEVANT_ARTICLES_QUEUE_NAME` BullMQ queue name constant. Other packages
+  listed in ADR 001's target layout (`domain`, `application`, `providers`, `ranking`, `evaluation`,
+  `observability`, `ui`) don't exist yet — don't assume their presence.
+- **`packages/database`** — Postgres persistence layer using Drizzle ORM. Schemas for `sources`,
+  `interests`, `articles`, `suggestion_runs`, and `ranked_article_scores` tables. Repositories for
+  upserting/querying suggestion runs and their ranked articles.
 
 **API ↔ worker boundary is BullMQ/Redis, not an in-process import** (ADR 003, deliberate: keeps
 the request/response path free of background-job concerns). `apps/api`'s queue producer and
 `apps/worker`'s queue consumer both import queue name and job data/result types from
-`@feed-plex/contracts` — keep that the single source of truth rather than re-duplicating shapes.
-Job results live only in Redis via BullMQ's TTL-based retention; there's no Postgres yet (ADR 001
-names Postgres as the eventual source of truth, but it isn't wired up).
+`@feed-plex/contracts` — keep that the single source of truth. Queue-triggered workflow runs are
+persisted to Postgres after success via the database package (optional feature; jobs work without
+DATABASE_URL). The API's `GET /runs/:jobId` falls back to the database if the job has expired from
+Redis.
 
 **Relevant-articles workflow** (`apps/worker/src/mastra/workflow/index.ts`): a fixed two-step
 Mastra pipeline — `fetchFeedArticlesStep` then `scoreArticlesStep` — with typed schemas at each

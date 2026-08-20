@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@feed-plex/contracts": "workspace:*",
+    "@feed-plex/database": "workspace:*",
     "@t3-oss/env-core": "^0.13.11",
     "bullmq": "^5.34.1",
     "dotenv": "^17.4.2",
     "fastify": "^5.2.1",
+    "fastify-plugin": "^6.0.0",
     "ioredis": "^5.4.2",
     "zod": "^4.4.3"
   }

@@ -1,7 +1,10 @@
 import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-plex/contracts';
+import { saveSuggestionRun } from '@feed-plex/database';
 import type { Job } from 'bullmq';
-import { relevantArticlesWorkflow } from '@/mastra/workflow';
 import { interests as defaultInterests, SOURCES as defaultSources } from '@/constants';
+import { db } from '@/db';
+import { logger } from '@/logger';
+import { relevantArticlesWorkflow } from '@/mastra/workflow';
 
 export const processRelevantArticlesJob = async (
   job: Job<RelevantArticlesJobData>,
@@ -16,5 +19,15 @@ export const processRelevantArticlesJob = async (
     throw new Error(`Workflow run failed with status: ${result.status}`);
   }
 
-  return result.result.rankedArticles;
+  const rankedArticles = result.result.rankedArticles;
+
+  if (db && job.id) {
+    try {
+      await saveSuggestionRun(db, { jobId: job.id, sources, interests, rankedArticles });
+    } catch (error) {
+      logger.error({ err: error }, `Failed to persist suggestion run ${job.id}`);
+    }
+  }
+
+  return rankedArticles;
 };
