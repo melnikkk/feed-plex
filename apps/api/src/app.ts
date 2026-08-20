@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { dbPlugin } from '@/plugins/db';
 import { relevantArticlesRunsRoutes } from '@/routes/relevantArticlesRuns/route';
 import { env } from '@/env';
 
@@ -49,6 +50,8 @@ export const buildApp = () => {
       done(null, payload);
     });
   }
+
+  app.register(dbPlugin);
 
   app.register(
     async (api) => {
