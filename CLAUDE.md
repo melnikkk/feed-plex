@@ -45,9 +45,13 @@ There is no test runner configured yet — don't assume one exists.
 
 Each app needs its own `.env` (copy from `.env.example` in `apps/worker/` and `apps/api/`).
 `apps/worker` requires `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini, for embeddings) and `REDIS_URL`;
-`apps/api` requires `REDIS_URL`, `PORT`, `HOST`. Both apps accept an optional `DATABASE_URL`
-(format: `postgresql://user:password@host:port/database`) — with `docker-compose`, the default
-Postgres credentials are `postgresql://feedplex:feedplex@localhost:5432/feedplex`. Env is
+`apps/api` requires `REDIS_URL`, `PORT`, `HOST`, and `DATABASE_URL` — with `docker-compose`, the
+default Postgres credentials are `postgresql://feedplex:feedplex@localhost:5432/feedplex`.
+`apps/api`'s `DATABASE_URL` is required (not optional) because every real route besides the health
+check is feed-backed (ADR 004); `app.db` is always present, no runtime null-checks needed.
+`apps/worker`'s `DATABASE_URL` stays optional in `env.ts` — `run.ts` deliberately shares that
+module while staying DB-free, so the queue processor asserts `db` presence itself
+(`relevantArticlesProcessor.ts`) rather than the env schema enforcing it repo-wide. Env is
 validated at startup via `@t3-oss/env-core` in each app's `src/env.ts` — add new vars there, not
 by reading `process.env` directly.
 
@@ -60,31 +64,36 @@ Modular-monolith monorepo (Turborepo + pnpm workspaces), not microservices — s
 Three independently runnable apps under `apps/*`, shared code under `packages/*`:
 
 - **`apps/api`** — Fastify. Interactive serving boundary: REST endpoints, request validation,
-  eventually auth/rate-limiting. Currently just a health check and the relevant-articles-runs
-  route (`POST /api/workflows/relevant-articles/runs`, `GET .../runs/:jobId`). It enqueues jobs
-  onto BullMQ — it never runs workflow logic in-process.
+  eventually auth/rate-limiting. Routes are mounted under `/api/feeds`: feed CRUD
+  (`POST /`, `GET /`, `GET /:feedId`, `PUT /:feedId`, `DELETE /:feedId`) plus feed-scoped runs
+  nested under it (`POST /:feedId/runs`, `GET /:feedId/runs/:jobId`). It enqueues jobs onto
+  BullMQ — it never runs workflow logic in-process.
 - **`apps/worker`** — background processing only, built on **Mastra workflows** (not agents — see
   ADR 002). Owns feed polling, parsing, extraction, embedding, and the scoring pipeline. Has two
   entrypoints: `run.ts` (one-shot script, hardcoded feed/interests, prints ranked results to
-  stdout) and `queueWorker.ts` (long-running BullMQ `Worker` that consumes jobs enqueued by the
-  API and invokes the same workflow).
+  stdout, no DB) and `queueWorker.ts` (long-running BullMQ `Worker` that consumes jobs enqueued by
+  the API, resolves the job's `feedId` to its persisted sources/interests via
+  `@feed-plex/database`, and invokes the workflow).
 - **`apps/web`** — does not exist yet. Planned: TanStack Start/React/Router/Query/Form.
 - **`packages/contracts`** — shared types across `api`/`worker`: `Article`, `ArticleScore`,
-  `RankedArticle`, `Interest`, `Source`, and the `RelevantArticlesJobData`/`RelevantArticlesJobResult`
-  job contract plus the `RELEVANT_ARTICLES_QUEUE_NAME` BullMQ queue name constant. Other packages
-  listed in ADR 001's target layout (`domain`, `application`, `providers`, `ranking`, `evaluation`,
-  `observability`, `ui`) don't exist yet — don't assume their presence.
-- **`packages/database`** — Postgres persistence layer using Drizzle ORM. Schemas for `sources`,
-  `interests`, `articles`, `suggestion_runs`, and `ranked_article_scores` tables. Repositories for
+  `RankedArticle`, `Interest`, `Source`, `Feed`/`CreateFeedInput`/`UpdateFeedInput`, and the
+  `RelevantArticlesJobData` (`{ feedId: string }`)/`RelevantArticlesJobResult` job contract plus
+  the `RELEVANT_ARTICLES_QUEUE_NAME` BullMQ queue name constant. Other packages listed in ADR 001's
+  target layout (`domain`, `application`, `providers`, `ranking`, `evaluation`, `observability`,
+  `ui`) don't exist yet — don't assume their presence.
+- **`packages/database`** — Postgres persistence layer using Drizzle ORM. `feeds` is the owning
+  entity (ADR 004): `sources` and `interests` each carry a `feedId` FK with a composite unique
+  constraint (`feedId` + `url`/`topic`), and `suggestion_runs` carries a required `feedId` FK —
+  every run is attributed to a feed. `articles` stays a global, feed-unscoped content cache keyed
+  by `link`. `feedsRepository` covers feed CRUD; `suggestionRunsRepository` covers
   upserting/querying suggestion runs and their ranked articles.
 
 **API ↔ worker boundary is BullMQ/Redis, not an in-process import** (ADR 003, deliberate: keeps
 the request/response path free of background-job concerns). `apps/api`'s queue producer and
 `apps/worker`'s queue consumer both import queue name and job data/result types from
 `@feed-plex/contracts` — keep that the single source of truth. Queue-triggered workflow runs are
-persisted to Postgres after success via the database package (optional feature; jobs work without
-DATABASE_URL). The API's `GET /runs/:jobId` falls back to the database if the job has expired from
-Redis.
+persisted to Postgres after success via the database package. The API's `GET /:feedId/runs/:jobId`
+falls back to the database if the job has expired from Redis.
 
 **Relevant-articles workflow** (`apps/worker/src/mastra/workflow/index.ts`): a fixed two-step
 Mastra pipeline — `fetchFeedArticlesStep` then `scoreArticlesStep` — with typed schemas at each
@@ -92,9 +101,10 @@ boundary (`apps/worker/src/mastra/shared/schemas/`). Scoring
 (`scoreArticlesStep/{similarity,lexical,freshness,weightedProfile}.ts`) combines embedding
 similarity, keyword overlap, freshness decay, and source affinity into one weighted
 `ArticleScore`; the only model calls are deterministic embedding lookups, never an LLM judgment
-call. Default feed sources and the interest profile are hardcoded in
-`apps/worker/src/constants/interests.ts` and used as fallbacks when a queue job doesn't supply
-its own `sources`/`interests`.
+call. The workflow itself is feed-agnostic — it just takes flat `sources`/`interests` per run;
+feed resolution happens one layer up, in `apps/worker/src/queue/relevantArticlesProcessor.ts`.
+`apps/worker/src/constants/{config,interests}.ts` are hardcoded sources/interests used only by the
+DB-free `run.ts` script, not by the queue-driven, feed-scoped path.
 
 ## Conventions
 
