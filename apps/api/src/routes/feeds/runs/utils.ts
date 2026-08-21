@@ -1,4 +1,4 @@
-import type { JobStatus } from '@/routes/relevantArticlesRuns/types';
+import type { JobStatus } from '@/routes/feeds/runs/types';
 
 export const toJobStatus = (state: string): JobStatus => {
   switch (state) {

@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import { dbPlugin } from '@/plugins/db';
-import { relevantArticlesRunsRoutes } from '@/routes/relevantArticlesRuns/route';
+import { feedsRoutes } from '@/routes/feeds/route';
 import { env } from '@/env';
 
 const safeJsonParse = (value: string): unknown => {
@@ -57,7 +57,7 @@ export const buildApp = () => {
     async (api) => {
       api.get('/health', async () => ({ status: 'ok' }));
 
-      api.register(relevantArticlesRunsRoutes, { prefix: '/workflows/relevant-articles' });
+      api.register(feedsRoutes, { prefix: '/feeds' });
     },
     { prefix: '/api' },
   );

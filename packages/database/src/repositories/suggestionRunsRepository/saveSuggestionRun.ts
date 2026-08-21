@@ -5,17 +5,27 @@ import type { SaveSuggestionRunInput } from './types';
 
 export const saveSuggestionRun = async (
   db: DbClient,
-  { jobId, sources: jobSources, interests: jobInterests, rankedArticles }: SaveSuggestionRunInput,
+  {
+    jobId,
+    feedId,
+    sources: jobSources,
+    interests: jobInterests,
+    rankedArticles,
+  }: SaveSuggestionRunInput,
 ): Promise<void> => {
   await db.transaction(async (tx) => {
     if (jobSources.length > 0) {
       await tx
         .insert(sources)
         .values(
-          jobSources.map((source) => ({ url: source.url, sourceAffinity: source.sourceAffinity })),
+          jobSources.map((source) => ({
+            feedId,
+            url: source.url,
+            sourceAffinity: source.sourceAffinity,
+          })),
         )
         .onConflictDoUpdate({
-          target: sources.url,
+          target: [sources.feedId, sources.url],
           set: { sourceAffinity: sql`excluded.source_affinity` },
         });
     }
@@ -25,6 +35,7 @@ export const saveSuggestionRun = async (
         .insert(interests)
         .values(
           jobInterests.map((interest) => ({
+            feedId,
             topic: interest.topic,
             weight: interest.weight,
             keywords: interest.keywords,
@@ -32,7 +43,7 @@ export const saveSuggestionRun = async (
           })),
         )
         .onConflictDoUpdate({
-          target: interests.topic,
+          target: [interests.feedId, interests.topic],
           set: {
             weight: sql`excluded.weight`,
             keywords: sql`excluded.keywords`,
@@ -43,7 +54,7 @@ export const saveSuggestionRun = async (
 
     await tx
       .insert(suggestionRuns)
-      .values({ id: jobId, status: 'completed' })
+      .values({ id: jobId, feedId, status: 'completed' })
       .onConflictDoUpdate({
         target: suggestionRuns.id,
         set: { status: sql`excluded.status`, completedAt: sql`now()` },

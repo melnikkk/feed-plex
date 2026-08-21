@@ -6,12 +6,13 @@ import { articles, rankedArticleScores, suggestionRuns } from '../../schema';
 export const getSuggestionRunResult = async (
   db: DbClient,
   jobId: string,
+  feedId: string,
 ): Promise<Array<RankedArticle> | null> => {
   const run = await db.query.suggestionRuns.findFirst({
     where: eq(suggestionRuns.id, jobId),
   });
 
-  if (!run) {
+  if (!run || run.feedId !== feedId) {
     return null;
   }
 

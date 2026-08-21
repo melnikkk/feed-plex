@@ -5,18 +5,16 @@ import { env } from '@/env';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    db: DbClient | undefined;
+    db: DbClient;
   }
 }
 
 export const dbPlugin = fp(async (app) => {
-  const db = env.DATABASE_URL ? createDbClient(env.DATABASE_URL) : undefined;
+  const db = createDbClient(env.DATABASE_URL);
 
   app.decorate('db', db);
 
-  if (db) {
-    app.addHook('onClose', async () => {
-      await closeDbClient(db);
-    });
-  }
+  app.addHook('onClose', async () => {
+    await closeDbClient(db);
+  });
 });
