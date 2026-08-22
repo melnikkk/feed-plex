@@ -1,4 +1,4 @@
-import type { JobStatus } from '@/routes/feeds/runs/types';
+import type { JobStatus } from '@feed-plex/contracts';
 
 export const toJobStatus = (state: string): JobStatus => {
   switch (state) {

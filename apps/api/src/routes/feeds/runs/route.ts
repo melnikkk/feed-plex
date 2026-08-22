@@ -1,49 +1,33 @@
-import { getFeedById, getSuggestionRunResult } from '@feed-plex/database';
-import type { FastifyPluginAsync } from 'fastify';
-import { relevantArticlesQueue } from '@/routes/feeds/runs/queue';
-import { toJobStatus } from '@/routes/feeds/runs/utils';
+import { jobStatusResponseSchema } from '@feed-plex/contracts';
+import { errorResponseSchema } from '@/routes/feeds/schema';
+import { createRunHandler, getRunHandler } from '@/routes/feeds/runs/handlers';
+import {
+  createRunResponseSchema,
+  feedRunJobParamsSchema,
+  feedRunParamsSchema,
+} from '@/routes/feeds/runs/schema';
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
-export const feedRunsRoutes: FastifyPluginAsync = async (app) => {
-  app.post<{ Params: { feedId: string } }>('/', async (request, reply) => {
-    const feed = await getFeedById(app.db, request.params.feedId);
+export const feedRunsRoutes: FastifyPluginAsyncZod = async (app) => {
+  app.post(
+    '/',
+    {
+      schema: {
+        params: feedRunParamsSchema,
+        response: { 202: createRunResponseSchema, 404: errorResponseSchema },
+      },
+    },
+    createRunHandler,
+  );
 
-    if (!feed) {
-      return reply.code(404).send({ error: 'Feed not found' });
-    }
-
-    const job = await relevantArticlesQueue.add('run', { feedId: feed.id });
-
-    return reply.code(202).send({ jobId: job.id });
-  });
-
-  app.get<{ Params: { feedId: string; jobId: string } }>('/:jobId', async (request, reply) => {
-    const job = await relevantArticlesQueue.getJob(request.params.jobId);
-
-    if (!job || job.data.feedId !== request.params.feedId) {
-      const result = await getSuggestionRunResult(
-        app.db,
-        request.params.jobId,
-        request.params.feedId,
-      );
-
-      if (result) {
-        return reply.send({ jobId: request.params.jobId, status: 'completed', result });
-      }
-
-      return reply.code(404).send({ error: 'Job not found' });
-    }
-
-    const state = await job.getState();
-    const status = toJobStatus(state);
-
-    if (status === 'completed') {
-      return reply.send({ jobId: job.id, status, result: job.returnvalue });
-    }
-
-    if (status === 'failed') {
-      return reply.send({ jobId: job.id, status, error: job.failedReason });
-    }
-
-    return reply.send({ jobId: job.id, status });
-  });
+  app.get(
+    '/:jobId',
+    {
+      schema: {
+        params: feedRunJobParamsSchema,
+        response: { 200: jobStatusResponseSchema, 404: errorResponseSchema },
+      },
+    },
+    getRunHandler,
+  );
 };

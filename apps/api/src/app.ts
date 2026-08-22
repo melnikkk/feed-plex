@@ -1,6 +1,11 @@
 import cors from '@fastify/cors';
 import Fastify from 'fastify';
+import type { ZodTypeProvider } from 'fastify-type-provider-zod';
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { z } from 'zod';
 import { dbPlugin } from '@/plugins/db';
+import { errorHandlerPlugin } from '@/plugins/errorHandler';
+import { swaggerPlugin } from '@/plugins/swagger';
 import { feedsRoutes } from '@/routes/feeds/route';
 import { env } from '@/env';
 
@@ -23,7 +28,10 @@ export const buildApp = () => {
             }
           : undefined,
     },
-  });
+  }).withTypeProvider<ZodTypeProvider>();
+
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
 
   app.addContentTypeParser('application/json', { parseAs: 'string' }, (_request, body, done) => {
     if (body === '') {
@@ -56,9 +64,19 @@ export const buildApp = () => {
 
   app.register(cors, { origin: [env.CORS_ORIGIN] });
 
+  app.register(errorHandlerPlugin);
+
+  if (env.NODE_ENV !== 'production') {
+    app.register(swaggerPlugin);
+  }
+
   app.register(
     async (api) => {
-      api.get('/health', async () => ({ status: 'ok' }));
+      api.get(
+        '/health',
+        { schema: { response: { 200: z.object({ status: z.literal('ok') }) } } },
+        async () => ({ status: 'ok' }),
+      );
 
       api.register(feedsRoutes, { prefix: '/feeds' });
     },
