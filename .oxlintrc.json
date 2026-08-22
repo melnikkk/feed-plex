@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "promise"],
+  "plugins": ["typescript", "unicorn", "oxc", "import", "node", "promise", "react"],
   "categories": {
     "correctness": "error",
     "suspicious": "warn",
@@ -11,14 +11,31 @@
     "typescript/no-explicit-any": "error",
     "typescript/consistent-type-imports": "warn",
     "unicorn/filename-case": ["warn", { "case": "camelCase" }],
-    "import/no-relative-parent-imports": "warn"
+    "import/no-relative-parent-imports": "warn",
+    "react/rules-of-hooks": "error",
+    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/react-in-jsx-scope": "off"
   },
-  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/.turbo/**", ".agents/**", ".claude/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    ".agents/**",
+    ".claude/**",
+    "apps/web/src/routeTree.gen.ts"
+  ],
   "overrides": [
     {
       "files": ["packages/*/src/**"],
       "rules": {
         "import/no-relative-parent-imports": "off"
+      }
+    },
+    {
+      "files": ["apps/web/src/routes/**"],
+      "rules": {
+        "unicorn/filename-case": "off",
+        "react/only-export-components": "off"
       }
     }
   ]

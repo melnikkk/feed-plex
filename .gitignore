@@ -8,3 +8,5 @@ coverage
 .turbo
 *.env
 !.env.example
+
+apps/web/.tanstack

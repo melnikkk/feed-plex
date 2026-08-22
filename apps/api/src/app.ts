@@ -1,3 +1,4 @@
+import cors from '@fastify/cors';
 import Fastify from 'fastify';
 import { dbPlugin } from '@/plugins/db';
 import { feedsRoutes } from '@/routes/feeds/route';
@@ -52,6 +53,8 @@ export const buildApp = () => {
   }
 
   app.register(dbPlugin);
+
+  app.register(cors, { origin: [env.CORS_ORIGIN] });
 
   app.register(
     async (api) => {

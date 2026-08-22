@@ -10,5 +10,12 @@
   "bracketSpacing": true,
   "arrowParens": "always",
   "endOfLine": "lf",
-  "ignorePatterns": ["**/dist/**", "**/.turbo/**", "pnpm-lock.yaml", ".agents/**", ".claude/**"]
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.turbo/**",
+    "pnpm-lock.yaml",
+    ".agents/**",
+    ".claude/**",
+    "apps/web/src/routeTree.gen.ts"
+  ]
 }
