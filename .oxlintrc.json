@@ -13,7 +13,7 @@
     "unicorn/filename-case": ["warn", { "case": "camelCase" }],
     "import/no-relative-parent-imports": "warn"
   },
-  "ignorePatterns": ["**/dist/**", "**/.turbo/**", ".agents/**", ".claude/**"],
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/.turbo/**", ".agents/**", ".claude/**"],
   "overrides": [
     {
       "files": ["packages/*/src/**"],

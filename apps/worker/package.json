@@ -6,7 +6,9 @@
     "start": "tsx src/run.ts",
     "dev": "tsx watch src/queueWorker.ts",
     "queue:worker": "tsx src/queueWorker.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.44",

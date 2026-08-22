@@ -27,6 +27,12 @@ pnpm --filter @feed-plex/api typecheck
 pnpm --filter @feed-plex/contracts typecheck
 pnpm --filter @feed-plex/database typecheck
 
+pnpm --filter @feed-plex/worker test         # vitest run, per-package (no root test script)
+pnpm --filter @feed-plex/api test
+pnpm --filter @feed-plex/contracts test
+pnpm --filter @feed-plex/database test
+# each also has a test:coverage variant
+
 pnpm --filter @feed-plex/worker start        # one-shot: run relevant-articles workflow against hardcoded feed/interests
 pnpm --filter @feed-plex/worker dev          # tsx watch, BullMQ queue consumer (queueWorker.ts)
 pnpm --filter @feed-plex/worker queue:worker # same consumer, no watch
@@ -41,7 +47,22 @@ docker compose up -d redis postgres        # Redis and Postgres required
 docker compose down                         # shut down services
 ```
 
-There is no test runner configured yet — don't assume one exists.
+Every app and package has its own `vitest.config.ts` (Vitest, latest v4) — no shared root config,
+matching the per-package `typecheck` convention above. `apps/api`/`apps/worker` configs additionally
+set `resolve.tsconfigPaths: true` (Vite's native tsconfig-paths resolution, no plugin needed) so the
+`@/*` alias works in tests (`packages/*` don't use that alias, so their configs omit it), and stub
+`DATABASE_URL`/`REDIS_URL`/`GOOGLE_GENERATIVE_AI_API_KEY` via `test.env` with well-formed-but-fake
+values so `env.ts` parses without a real Postgres/Redis/Gemini key — `postgres-js`/`ioredis` clients
+connect lazily, so `apps/api`'s `buildApp()` can be exercised via Fastify's documented `app.inject()`
+pattern (see `apps/api/src/__tests__/app.test.ts`) without a live DB for routes that don't touch it.
+All configs set `restoreMocks: true` for test isolation. Tests live in a `__tests__/` folder at the
+same directory level as the file they cover (e.g. `feeds/route.ts` → `feeds/__tests__/route.test.ts`),
+not colocated as siblings — apps import the file under test via the `@/*` alias from inside
+`__tests__/` (satisfies `import/no-relative-parent-imports`); `packages/*` use a relative `../` import
+since they have no path alias and the lint rule is already off for `packages/*/src/**`.
+`packages/database`'s repository functions are DB-bound and untested for now — only pure mapping
+logic (`toFeed.ts`) has coverage; the repositories themselves would need integration tests against a
+real Postgres, not unit tests.
 
 Each app needs its own `.env` (copy from `.env.example` in `apps/worker/` and `apps/api/`).
 `apps/worker` requires `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini, for embeddings) and `REDIS_URL`;
