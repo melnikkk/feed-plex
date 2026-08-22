@@ -24,11 +24,13 @@ pnpm format:check                   # oxfmt --check .
 
 pnpm --filter @feed-plex/worker typecheck   # tsc --noEmit, per-package (no root typecheck script)
 pnpm --filter @feed-plex/api typecheck
+pnpm --filter @feed-plex/web typecheck
 pnpm --filter @feed-plex/contracts typecheck
 pnpm --filter @feed-plex/database typecheck
 
 pnpm --filter @feed-plex/worker test         # vitest run, per-package (no root test script)
 pnpm --filter @feed-plex/api test
+pnpm --filter @feed-plex/web test
 pnpm --filter @feed-plex/contracts test
 pnpm --filter @feed-plex/database test
 # each also has a test:coverage variant
@@ -40,6 +42,10 @@ pnpm --filter @feed-plex/worker queue:worker # same consumer, no watch
 pnpm --filter @feed-plex/api dev             # Fastify API with watch
 pnpm --filter @feed-plex/api start
 
+pnpm --filter @feed-plex/web dev             # Vite dev server (SPA)
+pnpm --filter @feed-plex/web build           # production static build
+pnpm --filter @feed-plex/web start           # vite preview, serves the production build
+
 pnpm --filter @feed-plex/database db:generate  # generate Drizzle migrations from schema
 pnpm --filter @feed-plex/database db:migrate   # run pending migrations
 
@@ -48,26 +54,31 @@ docker compose down                         # shut down services
 ```
 
 Every app and package has its own `vitest.config.ts` (Vitest, latest v4) — no shared root config,
-matching the per-package `typecheck` convention above. `apps/api`/`apps/worker` configs additionally
-set `resolve.tsconfigPaths: true` (Vite's native tsconfig-paths resolution, no plugin needed) so the
-`@/*` alias works in tests (`packages/*` don't use that alias, so their configs omit it), and stub
-`DATABASE_URL`/`REDIS_URL`/`GOOGLE_GENERATIVE_AI_API_KEY` via `test.env` with well-formed-but-fake
-values so `env.ts` parses without a real Postgres/Redis/Gemini key — `postgres-js`/`ioredis` clients
-connect lazily, so `apps/api`'s `buildApp()` can be exercised via Fastify's documented `app.inject()`
-pattern (see `apps/api/src/__tests__/app.test.ts`) without a live DB for routes that don't touch it.
-All configs set `restoreMocks: true` for test isolation. Tests live in a `__tests__/` folder at the
-same directory level as the file they cover (e.g. `feeds/route.ts` → `feeds/__tests__/route.test.ts`),
-not colocated as siblings — apps import the file under test via the `@/*` alias from inside
-`__tests__/` (satisfies `import/no-relative-parent-imports`); `packages/*` use a relative `../` import
-since they have no path alias and the lint rule is already off for `packages/*/src/**`.
+matching the per-package `typecheck` convention above. `apps/api`/`apps/worker`/`apps/web` configs
+additionally set `resolve.tsconfigPaths: true` (Vite's native tsconfig-paths resolution, no plugin
+needed) so the `@/*` alias works in tests (`packages/*` don't use that alias, so their configs omit
+it), and stub `DATABASE_URL`/`REDIS_URL`/`GOOGLE_GENERATIVE_AI_API_KEY`/`VITE_API_URL` via `test.env`
+with well-formed-but-fake values so `env.ts` parses without a real Postgres/Redis/Gemini key/live API
+— `postgres-js`/`ioredis` clients connect lazily, so `apps/api`'s `buildApp()` can be exercised via
+Fastify's documented `app.inject()` pattern (see `apps/api/src/__tests__/app.test.ts`) without a live
+DB for routes that don't touch it. `apps/web` runs its component/hook tests under `jsdom` (the other
+apps use the `node` environment) with `@testing-library/react`/`jest-dom`, loaded via
+`test.setupFiles`. All configs set `restoreMocks: true` for test isolation. Tests live in a
+`__tests__/` folder at the same directory level as the file they cover (e.g. `feeds/route.ts` →
+`feeds/__tests__/route.test.ts`), not colocated as siblings — apps import the file under test via the
+`@/*` alias from inside `__tests__/` (satisfies `import/no-relative-parent-imports`); `packages/*`
+use a relative `../` import since they have no path alias and the lint rule is already off for
+`packages/*/src/**`.
 `packages/database`'s repository functions are DB-bound and untested for now — only pure mapping
 logic (`toFeed.ts`) has coverage; the repositories themselves would need integration tests against a
 real Postgres, not unit tests.
 
-Each app needs its own `.env` (copy from `.env.example` in `apps/worker/` and `apps/api/`).
+Each app needs its own `.env` (copy from `.env.example` in `apps/worker/`, `apps/api/`, `apps/web/`).
 `apps/worker` requires `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini, for embeddings) and `REDIS_URL`;
 `apps/api` requires `REDIS_URL`, `PORT`, `HOST`, and `DATABASE_URL` — with `docker-compose`, the
-default Postgres credentials are `postgresql://feedplex:feedplex@localhost:5432/feedplex`.
+default Postgres credentials are `postgresql://feedplex:feedplex@localhost:5432/feedplex`. `apps/web`
+requires only `VITE_API_URL` (e.g. `http://localhost:3000/api`) — as a browser SPA it never touches
+Redis/Postgres directly (ADR 004), and Vite only exposes env vars prefixed `VITE_` to client code.
 `apps/api`'s `DATABASE_URL` is required (not optional) because every real route besides the health
 check is feed-backed (ADR 004); `app.db` is always present, no runtime null-checks needed.
 `apps/worker`'s `DATABASE_URL` stays optional in `env.ts` — `run.ts` deliberately shares that
@@ -95,7 +106,14 @@ Three independently runnable apps under `apps/*`, shared code under `packages/*`
   stdout, no DB) and `queueWorker.ts` (long-running BullMQ `Worker` that consumes jobs enqueued by
   the API, resolves the job's `feedId` to its persisted sources/interests via
   `@feed-plex/database`, and invokes the workflow).
-- **`apps/web`** — does not exist yet. Planned: TanStack Start/React/Router/Query/Form.
+- **`apps/web`** — client-only SPA (ADR 004, superseding ADR 001's unevaluated placeholder stack):
+  Vite + React + TanStack Router (file-based routes under `src/routes/`, tree generated to
+  `src/routeTree.gen.ts` by the `@tanstack/router-plugin` Vite plugin on `dev`/`build` — committed
+  to git per TanStack's guidance, since it's runtime source, not a build artifact; the plugin's
+  `.tanstack/` tmp/atomic-write staging dir is gitignored) + TanStack Query. Ships as static assets
+  and calls `apps/api` exclusively over REST via `src/lib/apiClient.ts` — it never imports
+  `@feed-plex/database` or talks to Redis/Postgres directly. SSR is deferred, not ruled out; if
+  added later, loaders must still call `apps/api` over HTTP rather than the database package.
 - **`packages/contracts`** — shared types across `api`/`worker`: `Article`, `ArticleScore`,
   `RankedArticle`, `Interest`, `Source`, `Feed`/`CreateFeedInput`/`UpdateFeedInput`, and the
   `RelevantArticlesJobData` (`{ feedId: string }`)/`RelevantArticlesJobResult` job contract plus
@@ -134,7 +152,26 @@ DB-free `run.ts` script, not by the queue-driven, feed-scoped path.
   over deep relative imports (`import/no-relative-parent-imports` is a lint warning).
 - Linting/formatting via **oxlint**/**oxfmt**, not ESLint/Prettier — config in `.oxlintrc.json` /
   `.oxfmtrc.json`. Notable enforced rules: no `any` (error), prefer `import type` for type-only
-  imports, filenames camelCase, single quotes, trailing commas, 100-char print width.
+  imports, filenames camelCase, single quotes, trailing commas, 100-char print width. The `react`
+  plugin is enabled repo-wide for `apps/web` (`react/rules-of-hooks` error,
+  `react/only-export-components` warn); `react/react-in-jsx-scope` is off since the app uses the
+  automatic JSX runtime. `apps/web/src/routes/**` is exempted from `unicorn/filename-case` and
+  `react/only-export-components` — TanStack Router's file-based routing mandates names
+  (`__root.tsx`, `$param` segments) and a per-route `Route` export that don't fit those rules.
 - New code should follow the existing step/route folder shape: a feature directory with
   `index.ts` plus focused files (`constants.ts`, `schema.ts`, `types.ts`, `utils.ts`) rather than
   one large file.
+
+## Git
+
+- **Branch naming**: `<category>-<kebab-case-slug>`, e.g. `feature-persisted-feeds`,
+  `tech-vitest-testing-setup`. Categories: `feature` (user-facing capability), `tech` (tooling,
+  scaffolding, docs, refactors), `fix` (defect resolution).
+- **Commits**: `[category]: <imperative, present-tense summary>` — same category vocabulary as
+  branch names (e.g. `[tech]: add oxc lint/format tooling and lefthook pre-commit hook`,
+  `[feature]: add feeds as owning entity for sources, interests, and runs`). One branch is
+  typically one logical change and lands as one commit.
+- **PRs**: one PR per branch, always against `master`, title identical to the commit message
+  (including the `[category]:` prefix) — `gh pr list` titles and `git log` subjects match 1:1.
+  PR bodies are left empty; the title is the only description. PRs are squash-merged, which is why
+  `master`'s history is fully linear with no merge commits.
