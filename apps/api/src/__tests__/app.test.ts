@@ -44,4 +44,16 @@ describe('buildApp', () => {
 
     expect(response.headers['access-control-allow-origin']).toBeUndefined();
   });
+
+  it('rejects an invalid feed creation body with 400', async () => {
+    app = buildApp();
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/feeds',
+      payload: { name: 'Feed with no sources or interests' },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
 });

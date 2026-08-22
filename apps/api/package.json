@@ -1,5 +1,6 @@
 {
   "name": "@feed-plex/api",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +12,8 @@
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",
+    "@fastify/swagger": "^9.8.1",
+    "@fastify/swagger-ui": "^6.1.1",
     "@feed-plex/contracts": "workspace:*",
     "@feed-plex/database": "workspace:*",
     "@t3-oss/env-core": "^0.13.11",
@@ -18,6 +21,7 @@
     "dotenv": "^17.4.2",
     "fastify": "^5.2.1",
     "fastify-plugin": "^6.0.0",
+    "fastify-type-provider-zod": "^7.0.0",
     "ioredis": "^5.4.2",
     "zod": "^4.4.3"
   }
