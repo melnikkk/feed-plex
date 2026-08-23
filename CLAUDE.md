@@ -107,10 +107,13 @@ Three independently runnable apps under `apps/*`, shared code under `packages/*`
   the API, resolves the job's `feedId` to its persisted sources/interests via
   `@feed-plex/database`, and invokes the workflow).
 - **`apps/web`** — client-only SPA (ADR 004, superseding ADR 001's unevaluated placeholder stack):
-  Vite + React + TanStack Router (file-based routes under `src/routes/`, tree generated to
-  `src/routeTree.gen.ts` by the `@tanstack/router-plugin` Vite plugin on `dev`/`build` — committed
-  to git per TanStack's guidance, since it's runtime source, not a build artifact; the plugin's
-  `.tanstack/` tmp/atomic-write staging dir is gitignored) + TanStack Query. Ships as static assets
+  Vite + React + TanStack Router, structured per Feature-Sliced Design: the `app` layer
+  (`src/app/`) owns app-wide setup, including routing — file-based routes live under
+  `src/app/routes/`, tree generated to `src/app/routeTree.gen.ts` by the `@tanstack/router-plugin`
+  Vite plugin (`routesDirectory`/`generatedRouteTree` configured accordingly in `vite.config.ts`)
+  on `dev`/`build` — committed to git per TanStack's guidance, since it's runtime source, not a
+  build artifact; the plugin's `.tanstack/` tmp/atomic-write staging dir is gitignored) +
+  TanStack Query. Ships as static assets
   and calls `apps/api` exclusively over REST via `src/lib/apiClient.ts` — it never imports
   `@feed-plex/database` or talks to Redis/Postgres directly. SSR is deferred, not ruled out; if
   added later, loaders must still call `apps/api` over HTTP rather than the database package.
@@ -155,7 +158,7 @@ DB-free `run.ts` script, not by the queue-driven, feed-scoped path.
   imports, filenames camelCase, single quotes, trailing commas, 100-char print width. The `react`
   plugin is enabled repo-wide for `apps/web` (`react/rules-of-hooks` error,
   `react/only-export-components` warn); `react/react-in-jsx-scope` is off since the app uses the
-  automatic JSX runtime. `apps/web/src/routes/**` is exempted from `unicorn/filename-case` and
+  automatic JSX runtime. `apps/web/src/app/routes/**` is exempted from `unicorn/filename-case` and
   `react/only-export-components` — TanStack Router's file-based routing mandates names
   (`__root.tsx`, `$param` segments) and a per-route `Route` export that don't fit those rules.
 - New code should follow the existing step/route folder shape: a feature directory with
