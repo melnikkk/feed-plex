@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getHealth } from '@/lib/apiClient';
+import { getHealth } from '@/shared/api';
 
 describe('apiClient', () => {
   beforeEach(() => {

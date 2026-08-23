@@ -15,4 +15,4 @@ const request = async <T>(path: string): Promise<T> => {
 
 export const getHealth = () => request<HealthResponse>('/health');
 
-export const getFeeds = () => request<Feed[]>('/feeds');
+export const getFeeds = () => request<Array<Feed>>('/feeds');
