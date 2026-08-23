@@ -4,5 +4,13 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   resolve: { tsconfigPaths: true },
-  plugins: [tanstackRouter({ target: 'react', autoCodeSplitting: true }), react()],
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+      routesDirectory: './src/app/routes',
+      generatedRouteTree: './src/app/routeTree.gen.ts',
+    }),
+    react(),
+  ],
 });

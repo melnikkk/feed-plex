@@ -22,7 +22,7 @@
     "**/.turbo/**",
     ".agents/**",
     ".claude/**",
-    "apps/web/src/routeTree.gen.ts"
+    "apps/web/src/app/routeTree.gen.ts"
   ],
   "overrides": [
     {
@@ -32,7 +32,7 @@
       }
     },
     {
-      "files": ["apps/web/src/routes/**"],
+      "files": ["apps/web/src/app/routes/**"],
       "rules": {
         "unicorn/filename-case": "off",
         "react/only-export-components": "off"
