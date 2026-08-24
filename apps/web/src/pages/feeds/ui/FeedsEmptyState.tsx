@@ -1,5 +1,6 @@
 import { Rss } from 'lucide-react';
 import type { FC } from 'react';
+import { CreateFeedDialog } from '@/features/createFeed';
 import {
   Empty,
   EmptyContent,
@@ -8,7 +9,6 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/shared/ui';
-import { AddFeedButton } from './AddFeedButton';
 
 export const FeedsEmptyState: FC = () => (
   <Empty className="border border-dashed py-16">
@@ -22,7 +22,7 @@ export const FeedsEmptyState: FC = () => (
       </EmptyDescription>
     </EmptyHeader>
     <EmptyContent>
-      <AddFeedButton />
+      <CreateFeedDialog />
     </EmptyContent>
   </Empty>
 );

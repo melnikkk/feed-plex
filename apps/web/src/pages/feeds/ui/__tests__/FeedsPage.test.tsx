@@ -37,11 +37,6 @@ const renderFeedsPage = () => {
       path: '/feeds/$id',
       component: () => <span>feed detail</span>,
     }),
-    createRoute({
-      getParentRoute: () => rootRoute,
-      path: '/feeds/create',
-      component: () => <span>create feed</span>,
-    }),
   ]);
 
   const router = createRouter({

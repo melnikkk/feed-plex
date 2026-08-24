@@ -1,8 +1,8 @@
 import { RefreshCw } from 'lucide-react';
 import type { FC } from 'react';
+import { CreateFeedDialog } from '@/features/createFeed';
 import { cn } from '@/shared/lib';
 import { Button } from '@/shared/ui';
-import { AddFeedButton } from './AddFeedButton';
 
 interface Props {
   feedCount: number;
@@ -25,7 +25,7 @@ export const FeedsPageHeader: FC<Props> = ({ feedCount, isRefreshing, onRefresh 
         <RefreshCw data-icon="inline-start" className={cn(isRefreshing && 'animate-spin')} />
         Refresh
       </Button>
-      <AddFeedButton />
+      <CreateFeedDialog />
     </div>
   </div>
 );
