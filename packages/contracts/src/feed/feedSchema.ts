@@ -9,6 +9,8 @@ export const feedSchema = z.object({
   sources: z.array(sourceSchema),
   interests: z.array(interestSchema),
   createdAt: z.string(),
+  updatedAt: z.string(),
+  lastViewedAt: z.string().optional(),
 });
 
 export type Feed = z.infer<typeof feedSchema>;

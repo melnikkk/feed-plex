@@ -10,6 +10,7 @@
     "import/no-unassigned-import": "off",
     "typescript/no-explicit-any": "error",
     "typescript/consistent-type-imports": "warn",
+    "typescript/array-type": ["warn", { "default": "generic" }],
     "unicorn/filename-case": ["warn", { "case": "camelCase" }],
     "import/no-relative-parent-imports": "warn",
     "react/rules-of-hooks": "error",
@@ -32,9 +33,31 @@
       }
     },
     {
+      "files": ["apps/web/src/**/*.tsx"],
+      "rules": {
+        "unicorn/filename-case": ["warn", { "case": "pascalCase" }]
+      }
+    },
+    {
       "files": ["apps/web/src/app/routes/**"],
       "rules": {
         "unicorn/filename-case": "off",
+        "react/only-export-components": "off"
+      }
+    },
+    {
+      "files": [
+        "apps/web/src/shared/ui/**",
+        "apps/web/src/main.tsx",
+        "apps/web/src/app/providers/**"
+      ],
+      "rules": {
+        "unicorn/filename-case": ["warn", { "case": "camelCase" }]
+      }
+    },
+    {
+      "files": ["apps/web/src/shared/ui/**"],
+      "rules": {
         "react/only-export-components": "off"
       }
     }

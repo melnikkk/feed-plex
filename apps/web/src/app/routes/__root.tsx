@@ -1,8 +1,13 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router';
-import { ThemeToggle } from '@/app/theme/themeToggle';
+import type { QueryClient } from '@tanstack/react-query';
+import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
+import { ThemeToggle } from '@/app/theme/ThemeToggle';
 import { NotFoundPage } from '@/pages/notFound';
 
-export const Route = createRootRoute({
+interface RouterContext {
+  queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: () => (
     <>
       <div className="fixed top-4 right-4 z-50">

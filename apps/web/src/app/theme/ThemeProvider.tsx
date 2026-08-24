@@ -1,17 +1,11 @@
-import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { FC, ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
-export type Theme = 'light' | 'dark' | 'system';
-
-type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-};
+import type { Theme } from './themeContext';
+import { ThemeProviderContext } from './themeContext';
 
 // Must match the inline anti-flash script in index.html.
 export const THEME_STORAGE_KEY = 'feedplex-theme';
-
-const ThemeProviderContext = createContext<ThemeProviderState | undefined>(undefined);
 
 function applyTheme(theme: Theme) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -20,7 +14,11 @@ function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle('dark', isDark);
 }
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
+interface Props {
+  children: ReactNode;
+}
+
+export const ThemeProvider: FC<Props> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>(
     () => (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) ?? 'system',
   );
@@ -46,14 +44,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({ theme, setTheme }), [theme, setTheme]);
 
   return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>;
-}
-
-export function useTheme() {
-  const context = useContext(ThemeProviderContext);
-
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-
-  return context;
-}
+};

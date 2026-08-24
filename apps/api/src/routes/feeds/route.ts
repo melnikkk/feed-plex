@@ -6,6 +6,7 @@ import {
   deleteFeedHandler,
   getFeedHandler,
   listFeedsHandler,
+  markFeedViewedHandler,
   updateFeedHandler,
 } from '@/routes/feeds/handlers';
 import { feedRunsRoutes } from '@/routes/feeds/runs/route';
@@ -47,6 +48,17 @@ export const feedsRoutes: FastifyPluginAsyncZod = async (app) => {
     '/:feedId',
     { schema: { params: feedIdParamsSchema, response: { 404: errorResponseSchema } } },
     deleteFeedHandler,
+  );
+
+  app.post(
+    '/:feedId/view',
+    {
+      schema: {
+        params: feedIdParamsSchema,
+        response: { 200: feedSchema, 404: errorResponseSchema },
+      },
+    },
+    markFeedViewedHandler,
   );
 
   app.register(feedRunsRoutes, { prefix: '/:feedId/runs' });

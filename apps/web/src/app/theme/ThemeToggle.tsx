@@ -1,4 +1,5 @@
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
+import type { FC } from 'react';
 import {
   Button,
   DropdownMenu,
@@ -6,16 +7,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/shared/ui';
-import type { Theme } from './themeProvider';
-import { useTheme } from './themeProvider';
+import type { Theme } from './themeContext';
+import { useTheme } from './useTheme';
 
-const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
+interface ThemeOption {
+  value: Theme;
+  label: string;
+  icon: typeof Sun;
+}
+
+const OPTIONS: Array<ThemeOption> = [
   { value: 'light', label: 'Light', icon: Sun },
   { value: 'dark', label: 'Dark', icon: Moon },
   { value: 'system', label: 'System', icon: Monitor },
 ];
 
-export function ThemeToggle() {
+export const ThemeToggle: FC = () => {
   const { theme, setTheme } = useTheme();
 
   return (
@@ -36,4 +43,4 @@ export function ThemeToggle() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

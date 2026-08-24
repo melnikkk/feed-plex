@@ -1,5 +1,12 @@
 import type { CreateFeedInput, UpdateFeedInput } from '@feed-plex/contracts';
-import { createFeed, deleteFeed, getFeedById, listFeeds, updateFeed } from '@feed-plex/database';
+import {
+  createFeed,
+  deleteFeed,
+  getFeedById,
+  listFeeds,
+  markFeedViewed,
+  updateFeed,
+} from '@feed-plex/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 export const createFeedHandler = async (
@@ -54,4 +61,17 @@ export const deleteFeedHandler = async (
   }
 
   return reply.code(204).send();
+};
+
+export const markFeedViewedHandler = async (
+  request: FastifyRequest<{ Params: { feedId: string } }>,
+  reply: FastifyReply,
+) => {
+  const feed = await markFeedViewed(request.server.db, request.params.feedId);
+
+  if (!feed) {
+    return reply.code(404).send({ error: 'Feed not found' });
+  }
+
+  return reply.send(feed);
 };
