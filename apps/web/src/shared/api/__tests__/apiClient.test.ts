@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { deleteFeed, getFeed, getHealth, markFeedViewed } from '@/shared/api';
+import { createFeed, deleteFeed, getFeed, getHealth, markFeedViewed } from '@/shared/api';
 
 describe('apiClient', () => {
   beforeEach(() => {
@@ -73,6 +73,44 @@ describe('apiClient', () => {
       expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/feeds/feed-1/view', {
         method: 'POST',
       });
+    });
+  });
+
+  describe('createFeed', () => {
+    const input = {
+      name: 'My feed',
+      sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
+      interests: [{ topic: 'react', weight: 0.5, keywords: ['hooks'] }],
+    };
+
+    it('sends a JSON POST request and returns the created feed', async () => {
+      const feed = {
+        id: 'feed-1',
+        ...input,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      };
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(feed), { status: 201 }));
+
+      await expect(createFeed(input)).resolves.toEqual(feed);
+      expect(fetch).toHaveBeenCalledWith('http://localhost:3000/api/feeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(input),
+      });
+    });
+
+    it('throws an ApiError carrying the parsed error body', async () => {
+      const body = { error: 'Validation Error' };
+      vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(body), { status: 400 }));
+
+      await expect(createFeed(input)).rejects.toMatchObject({ status: 400, body });
+    });
+
+    it('leaves the body undefined when the error response has no JSON', async () => {
+      vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }));
+
+      await expect(createFeed(input)).rejects.toMatchObject({ status: 500, body: undefined });
     });
   });
 });

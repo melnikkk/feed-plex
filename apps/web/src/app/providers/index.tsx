@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
 import { routeTree } from '@/app/routeTree.gen';
 import { ThemeProvider } from '@/app/theme/ThemeProvider';
+import { Toaster } from '@/shared/ui';
 
 const queryClient = new QueryClient();
 
@@ -22,7 +23,9 @@ export function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
+        <Toaster>
+          <RouterProvider router={router} />
+        </Toaster>
       </QueryClientProvider>
     </ThemeProvider>
   );
