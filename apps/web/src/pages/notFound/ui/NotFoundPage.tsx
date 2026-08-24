@@ -1,7 +1,8 @@
 import { Link } from '@tanstack/react-router';
+import type { FC } from 'react';
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui';
 
-export function NotFoundPage() {
+export const NotFoundPage: FC = () => {
   return (
     <main className="flex min-h-screen items-center justify-center p-6">
       <Card className="w-full max-w-sm">
@@ -17,4 +18,4 @@ export function NotFoundPage() {
       </Card>
     </main>
   );
-}
+};

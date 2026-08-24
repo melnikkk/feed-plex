@@ -30,7 +30,9 @@ non-LLM scoring formula. TypeScript modular-monolith monorepo (Turborepo + pnpm 
 
 - **oxlint**/**oxfmt**, not ESLint/Prettier (`.oxlintrc.json`/`.oxfmtrc.json`). No `any` (error),
   `import type` for type-only imports, camelCase filenames, single quotes, trailing commas,
-  100-char width.
+  100-char width. Exception: `apps/web` component `.tsx` files use PascalCase — see its
+  `AGENTS.md`.
+- Array types: generic form `Array<T>`, not `T[]`.
 - Prefer each app's `@/*` → `./src/*` alias over deep relative imports (`packages/*` have no
   alias — use relative `../` there).
 - New feature code: a directory with `index.ts` plus focused files (`constants.ts`, `schema.ts`,
@@ -40,7 +42,8 @@ non-LLM scoring formula. TypeScript modular-monolith monorepo (Turborepo + pnpm 
 
 Vitest, per-package config (no shared root config), `restoreMocks: true` everywhere — run via
 `pnpm --filter <name> test`. Tests live in `__tests__/` beside the code they cover, not colocated
-as siblings.
+as siblings. Prefer `it.each` over repeating near-identical `it` blocks for the same behavior
+across different inputs/outputs.
 
 ## Boundaries
 

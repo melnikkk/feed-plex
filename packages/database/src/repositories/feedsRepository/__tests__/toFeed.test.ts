@@ -7,6 +7,8 @@ const buildFeed = (overrides: Partial<FeedWithRelations> = {}): FeedWithRelation
   name: 'My feed',
   description: null,
   createdAt: new Date('2026-01-01T00:00:00Z'),
+  updatedAt: new Date('2026-01-01T00:00:00Z'),
+  lastViewedAt: null,
   sources: [],
   interests: [],
   ...overrides,
@@ -21,9 +23,24 @@ describe('toFeed', () => {
       name: 'My feed',
       description: undefined,
       createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      lastViewedAt: undefined,
       sources: [],
       interests: [],
     });
+  });
+
+  it.each([
+    { description: 'a null lastViewedAt to undefined', lastViewedAt: null, expected: undefined },
+    {
+      description: 'a non-null lastViewedAt',
+      lastViewedAt: new Date('2026-01-02T00:00:00Z'),
+      expected: '2026-01-02T00:00:00.000Z',
+    },
+  ])('maps $description', ({ lastViewedAt, expected }) => {
+    const feed = toFeed(buildFeed({ lastViewedAt }));
+
+    expect(feed.lastViewedAt).toEqual(expected);
   });
 
   it('preserves a non-null description', () => {

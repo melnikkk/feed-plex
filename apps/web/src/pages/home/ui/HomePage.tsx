@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { getHealth } from '@/shared/api';
+import type { FC } from 'react';
+import { getHealth, healthKeys } from '@/shared/api';
 import {
-  Badge,
   Button,
   Card,
   CardContent,
@@ -9,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-  Skeleton,
 } from '@/shared/ui';
+import { ApiStatusBadge } from './ApiStatusBadge';
 
-export function HomePage() {
+export const HomePage: FC = () => {
   const { data, isPending, isError, isFetching, refetch } = useQuery({
-    queryKey: ['health'],
+    queryKey: healthKeys.all,
     queryFn: getHealth,
   });
 
@@ -28,19 +28,7 @@ export function HomePage() {
         <CardContent>
           <div className="flex items-center gap-2">
             <span className="text-muted-foreground">API</span>
-            {isPending ? (
-              <Skeleton className="h-5 w-16" />
-            ) : isError ? (
-              <Badge variant="destructive">unreachable</Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="gap-1.5 border-emerald-600/30 text-emerald-600 dark:text-emerald-400"
-              >
-                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-                {data.status}
-              </Badge>
-            )}
+            <ApiStatusBadge isPending={isPending} isError={isError} status={data?.status} />
           </div>
         </CardContent>
         <CardFooter>
@@ -51,4 +39,4 @@ export function HomePage() {
       </Card>
     </main>
   );
-}
+};

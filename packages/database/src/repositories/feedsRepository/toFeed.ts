@@ -15,6 +15,8 @@ export const toFeed = (feed: FeedWithRelations): Feed => ({
   name: feed.name,
   description: feed.description ?? undefined,
   createdAt: feed.createdAt.toISOString(),
+  updatedAt: feed.updatedAt.toISOString(),
+  lastViewedAt: feed.lastViewedAt ? feed.lastViewedAt.toISOString() : undefined,
   sources: feed.sources.map((source) => ({
     url: source.url,
     sourceAffinity: source.sourceAffinity,

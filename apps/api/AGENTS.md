@@ -21,7 +21,8 @@ With `docker compose up -d redis postgres`, the default `DATABASE_URL` is
 ## Routes
 
 Mounted under `/api/feeds`: feed CRUD (`POST /`, `GET /`, `GET /:feedId`, `PUT /:feedId`,
-`DELETE /:feedId`) plus feed-scoped runs nested under it (`POST /:feedId/runs`,
+`DELETE /:feedId`), `POST /:feedId/view` (marks a feed as viewed, for "unseen changes"
+tracking), plus feed-scoped runs nested under it (`POST /:feedId/runs`,
 `GET /:feedId/runs/:jobId`). The `GET .../runs/:jobId` route falls back to Postgres once a job
 has expired from Redis.
 

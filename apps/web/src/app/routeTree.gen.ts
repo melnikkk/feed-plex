@@ -10,33 +10,63 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FeedsIndexRouteImport } from './routes/feeds/index'
+import { Route as FeedsIdRouteImport } from './routes/feeds/$id'
+import { Route as FeedsCreateRouteImport } from './routes/feeds/create'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FeedsIndexRoute = FeedsIndexRouteImport.update({
+  id: '/feeds/',
+  path: '/feeds/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedsIdRoute = FeedsIdRouteImport.update({
+  id: '/feeds/$id',
+  path: '/feeds/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedsCreateRoute = FeedsCreateRouteImport.update({
+  id: '/feeds/create',
+  path: '/feeds/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/feeds/$id': typeof FeedsIdRoute
+  '/feeds/create': typeof FeedsCreateRoute
+  '/feeds/': typeof FeedsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/feeds/$id': typeof FeedsIdRoute
+  '/feeds/create': typeof FeedsCreateRoute
+  '/feeds': typeof FeedsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/feeds/$id': typeof FeedsIdRoute
+  '/feeds/create': typeof FeedsCreateRoute
+  '/feeds/': typeof FeedsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/feeds/$id' | '/feeds/create' | '/feeds/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/feeds/$id' | '/feeds/create' | '/feeds'
+  id: '__root__' | '/' | '/feeds/$id' | '/feeds/create' | '/feeds/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  FeedsIdRoute: typeof FeedsIdRoute
+  FeedsCreateRoute: typeof FeedsCreateRoute
+  FeedsIndexRoute: typeof FeedsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +78,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/feeds/': {
+      id: '/feeds/'
+      path: '/feeds'
+      fullPath: '/feeds/'
+      preLoaderRoute: typeof FeedsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds/$id': {
+      id: '/feeds/$id'
+      path: '/feeds/$id'
+      fullPath: '/feeds/$id'
+      preLoaderRoute: typeof FeedsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feeds/create': {
+      id: '/feeds/create'
+      path: '/feeds/create'
+      fullPath: '/feeds/create'
+      preLoaderRoute: typeof FeedsCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  FeedsIdRoute: FeedsIdRoute,
+  FeedsCreateRoute: FeedsCreateRoute,
+  FeedsIndexRoute: FeedsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

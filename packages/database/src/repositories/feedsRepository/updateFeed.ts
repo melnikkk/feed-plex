@@ -101,6 +101,7 @@ export const updateFeed = async (
       .set({
         ...(input.name !== undefined ? { name: input.name } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
+        updatedAt: sql`now()`,
       })
       .where(eq(feeds.id, feedId))
       .returning();

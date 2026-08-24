@@ -1,18 +1,24 @@
-import type { Feed } from '@feed-plex/contracts';
 import { env } from '@/env';
 
-type HealthResponse = { status: string };
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    path: string,
+  ) {
+    super(`Request to ${path} failed with status ${status}`);
+  }
+}
 
-const request = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`${env.VITE_API_URL}${path}`);
+export const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  const response = await fetch(`${env.VITE_API_URL}${path}`, init);
 
   if (!response.ok) {
-    throw new Error(`Request to ${path} failed with status ${response.status}`);
+    throw new ApiError(response.status, path);
+  }
+
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
 };
-
-export const getHealth = () => request<HealthResponse>('/health');
-
-export const getFeeds = () => request<Array<Feed>>('/feeds');

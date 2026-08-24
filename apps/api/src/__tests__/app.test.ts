@@ -56,4 +56,12 @@ describe('buildApp', () => {
 
     expect(response.statusCode).toBe(400);
   });
+
+  it('rejects a non-uuid feedId on POST /api/feeds/:feedId/view with 400', async () => {
+    app = buildApp();
+
+    const response = await app.inject({ method: 'POST', url: '/api/feeds/not-a-uuid/view' });
+
+    expect(response.statusCode).toBe(400);
+  });
 });
