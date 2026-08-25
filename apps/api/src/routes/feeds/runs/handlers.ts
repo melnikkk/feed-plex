@@ -1,6 +1,6 @@
 import { getFeedById, getSuggestionRunResult } from '@feed-plex/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { relevantArticlesQueue } from '@/routes/feeds/runs/queue';
+import { enqueueRelevantArticlesRun, relevantArticlesQueue } from '@/routes/feeds/runs/queue';
 import { toJobStatus } from '@/routes/feeds/runs/utils';
 
 export const createRunHandler = async (
@@ -13,13 +13,9 @@ export const createRunHandler = async (
     return reply.code(404).send({ error: 'Feed not found' });
   }
 
-  const job = await relevantArticlesQueue.add('run', { feedId: feed.id });
+  const jobId = await enqueueRelevantArticlesRun(feed.id);
 
-  if (!job.id) {
-    throw new Error('Queued job is missing an id');
-  }
-
-  return reply.code(202).send({ jobId: job.id });
+  return reply.code(202).send({ jobId });
 };
 
 export const getRunHandler = async (

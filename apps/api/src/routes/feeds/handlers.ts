@@ -8,6 +8,7 @@ import {
   updateFeed,
 } from '@feed-plex/database';
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { enqueueRelevantArticlesRun } from '@/routes/feeds/runs/queue';
 
 export const createFeedHandler = async (
   request: FastifyRequest<{ Body: CreateFeedInput }>,
@@ -15,7 +16,13 @@ export const createFeedHandler = async (
 ) => {
   const feed = await createFeed(request.server.db, request.body);
 
-  return reply.code(201).send(feed);
+  const jobId = await enqueueRelevantArticlesRun(feed.id).catch((error: unknown) => {
+    request.log.error({ err: error, feedId: feed.id }, 'failed to enqueue initial feed run');
+
+    return undefined;
+  });
+
+  return reply.code(201).send(jobId ? { ...feed, jobId } : feed);
 };
 
 export const listFeedsHandler = async (request: FastifyRequest, reply: FastifyReply) => {

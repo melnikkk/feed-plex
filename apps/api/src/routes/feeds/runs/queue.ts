@@ -2,7 +2,7 @@ import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-p
 import { RELEVANT_ARTICLES_QUEUE_NAME } from '@feed-plex/contracts';
 import { Queue } from 'bullmq';
 import { createQueueConnection } from '@/queue/connection';
-import { ONE_HOUR_SECONDS } from '@/routes/feeds/runs/constants';
+import { ONE_HOUR_SECONDS, RELEVANT_ARTICLES_JOB_NAME } from '@/routes/feeds/runs/constants';
 
 export const relevantArticlesQueue = new Queue<RelevantArticlesJobData, RelevantArticlesJobResult>(
   RELEVANT_ARTICLES_QUEUE_NAME,
@@ -14,3 +14,13 @@ export const relevantArticlesQueue = new Queue<RelevantArticlesJobData, Relevant
     },
   },
 );
+
+export const enqueueRelevantArticlesRun = async (feedId: string): Promise<string> => {
+  const job = await relevantArticlesQueue.add(RELEVANT_ARTICLES_JOB_NAME, { feedId });
+
+  if (!job.id) {
+    throw new Error('Queued job is missing an id');
+  }
+
+  return job.id;
+};

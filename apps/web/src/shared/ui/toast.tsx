@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/button';
 import {
   XIcon,

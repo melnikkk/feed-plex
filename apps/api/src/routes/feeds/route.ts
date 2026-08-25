@@ -1,4 +1,9 @@
-import { createFeedInputSchema, feedSchema, updateFeedInputSchema } from '@feed-plex/contracts';
+import {
+  createFeedInputSchema,
+  createFeedResponseSchema,
+  feedSchema,
+  updateFeedInputSchema,
+} from '@feed-plex/contracts';
 import { z } from 'zod';
 import { errorResponseSchema, feedIdParamsSchema } from '@/routes/feeds/schema';
 import {
@@ -15,7 +20,7 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 export const feedsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     '/',
-    { schema: { body: createFeedInputSchema, response: { 201: feedSchema } } },
+    { schema: { body: createFeedInputSchema, response: { 201: createFeedResponseSchema } } },
     createFeedHandler,
   );
 

@@ -24,6 +24,10 @@ export const createFeedInputSchema = z.object({
 
 export type CreateFeedInput = z.infer<typeof createFeedInputSchema>;
 
+export const createFeedResponseSchema = feedSchema.extend({ jobId: z.string().optional() });
+
+export type CreateFeedResponse = z.infer<typeof createFeedResponseSchema>;
+
 export const updateFeedInputSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().optional(),
