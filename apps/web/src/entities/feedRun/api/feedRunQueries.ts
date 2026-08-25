@@ -4,6 +4,8 @@ import { getFeedRun } from '@/shared/api';
 
 const POLL_INTERVAL_MS = 1500;
 
+const ACTIVE_RUN_OPTIONS = { staleTime: Infinity, gcTime: Infinity } as const;
+
 export const feedRunKeys = {
   all: ['feed-runs'] as const,
 
@@ -24,8 +26,7 @@ export const activeFeedRunQueryOptions = (feedId: string) =>
     queryKey: feedRunKeys.active(feedId),
     queryFn: () => null,
     initialData: null,
-    staleTime: Infinity,
-    gcTime: Infinity,
+    ...ACTIVE_RUN_OPTIONS,
   });
 
 export const setActiveFeedRun = (
@@ -33,6 +34,7 @@ export const setActiveFeedRun = (
   feedId: string,
   jobId: string | null,
 ) => {
+  queryClient.setQueryDefaults(feedRunKeys.active(feedId), ACTIVE_RUN_OPTIONS);
   queryClient.setQueryData(feedRunKeys.active(feedId), jobId);
 };
 
@@ -48,6 +50,11 @@ export const feedRunStatusQueryOptions = (feedId: string, jobId: string | null) 
     },
     enabled: jobId !== null,
     gcTime: 0,
-    refetchInterval: (query) =>
-      query.state.data && isSettledFeedRun(query.state.data) ? false : POLL_INTERVAL_MS,
+    refetchInterval: (query) => {
+      if (query.state.status === 'error') {
+        return false;
+      }
+
+      return query.state.data && isSettledFeedRun(query.state.data) ? false : POLL_INTERVAL_MS;
+    },
   });

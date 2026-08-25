@@ -8,7 +8,7 @@ const comparators: Record<ArticleSortOption, (a: RankedArticle, b: RankedArticle
 };
 
 export const isArticleSortOption = (value: unknown): value is ArticleSortOption =>
-  typeof value === 'string' && value in comparators;
+  typeof value === 'string' && Object.hasOwn(comparators, value);
 
 export const sortArticles = (
   articles: Array<RankedArticle>,

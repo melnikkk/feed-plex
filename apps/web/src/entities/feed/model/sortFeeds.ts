@@ -9,7 +9,7 @@ const comparators: Record<FeedSortOption, (a: Feed, b: Feed) => number> = {
 };
 
 export const isFeedSortOption = (value: unknown): value is FeedSortOption =>
-  typeof value === 'string' && value in comparators;
+  typeof value === 'string' && Object.hasOwn(comparators, value);
 
 export const sortFeeds = (feeds: Array<Feed>, option: FeedSortOption): Array<Feed> =>
   feeds.toSorted(comparators[option]);

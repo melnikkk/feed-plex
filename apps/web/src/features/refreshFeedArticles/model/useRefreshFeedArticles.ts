@@ -13,10 +13,24 @@ import { toast } from '@/shared/ui';
 export const useRefreshFeedArticles = (feedId: string) => {
   const queryClient = useQueryClient();
   const { data: activeJobId } = useQuery(activeFeedRunQueryOptions(feedId));
-  const { data: run } = useQuery(feedRunStatusQueryOptions(feedId, activeJobId));
+  const { data: run, isError } = useQuery(feedRunStatusQueryOptions(feedId, activeJobId));
   const settledJobIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (activeJobId === null) {
+      return;
+    }
+
+    if (isError) {
+      setActiveFeedRun(queryClient, feedId, null);
+      toast.add({
+        title: "Couldn't track the ranking run",
+        description: 'It may still be running — reload to pick it up.',
+      });
+
+      return;
+    }
+
     if (!run || !isSettledFeedRun(run) || settledJobIdRef.current === run.jobId) {
       return;
     }
@@ -32,11 +46,14 @@ export const useRefreshFeedArticles = (feedId: string) => {
 
     void queryClient.invalidateQueries({ queryKey: articleKeys.feed(feedId) });
     toast.add({ title: 'Feed ranked', description: `${run.result.length} relevant articles.` });
-  }, [run, feedId, queryClient]);
+  }, [run, isError, activeJobId, feedId, queryClient]);
 
   const startRun = useMutation({
     mutationFn: () => createFeedRun(feedId),
-    onSuccess: ({ jobId }) => setActiveFeedRun(queryClient, feedId, jobId),
+    onSuccess: ({ jobId }) => {
+      settledJobIdRef.current = null;
+      setActiveFeedRun(queryClient, feedId, jobId);
+    },
     onError: () => toast.add({ title: "Couldn't start the ranking run" }),
   });
 

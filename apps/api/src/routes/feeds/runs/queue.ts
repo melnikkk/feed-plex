@@ -2,13 +2,20 @@ import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-p
 import { RELEVANT_ARTICLES_QUEUE_NAME } from '@feed-plex/contracts';
 import { Queue } from 'bullmq';
 import { createQueueConnection } from '@/queue/connection';
-import { ONE_HOUR_SECONDS, RELEVANT_ARTICLES_JOB_NAME } from '@/routes/feeds/runs/constants';
+import {
+  ONE_HOUR_SECONDS,
+  RELEVANT_ARTICLES_JOB_NAME,
+  RUN_ATTEMPTS,
+  RUN_BACKOFF_DELAY_MS,
+} from '@/routes/feeds/runs/constants';
 
 export const relevantArticlesQueue = new Queue<RelevantArticlesJobData, RelevantArticlesJobResult>(
   RELEVANT_ARTICLES_QUEUE_NAME,
   {
     connection: createQueueConnection(),
     defaultJobOptions: {
+      attempts: RUN_ATTEMPTS,
+      backoff: { type: 'exponential', delay: RUN_BACKOFF_DELAY_MS },
       removeOnComplete: { age: ONE_HOUR_SECONDS },
       removeOnFail: { age: ONE_HOUR_SECONDS },
     },

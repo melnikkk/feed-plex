@@ -1,6 +1,6 @@
 import { Plus } from 'lucide-react';
 import type { FC } from 'react';
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import {
   Button,
   Dialog,
@@ -10,7 +10,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/shared/ui';
-import { CreateFeedForm } from './CreateFeedForm';
+import { CreateFeedFormSkeleton } from './CreateFeedFormSkeleton';
+
+const CreateFeedForm = lazy(() => import('./CreateFeedForm'));
 
 export const CreateFeedDialog: FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +30,9 @@ export const CreateFeedDialog: FC = () => {
             Add the sources to ingest and the interests to rank articles against.
           </DialogDescription>
         </DialogHeader>
-        <CreateFeedForm onCreated={() => setIsOpen(false)} />
+        <Suspense fallback={<CreateFeedFormSkeleton />}>
+          <CreateFeedForm onCreated={() => setIsOpen(false)} />
+        </Suspense>
       </DialogContent>
     </Dialog>
   );

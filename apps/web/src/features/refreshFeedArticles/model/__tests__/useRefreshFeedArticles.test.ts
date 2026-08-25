@@ -63,6 +63,35 @@ describe('useRefreshFeedArticles', () => {
     expect(toastAdd).toHaveBeenCalledWith({ title: 'Ranking run failed', description: 'boom' });
   });
 
+  it('clears a run whose status can no longer be fetched instead of polling forever', async () => {
+    getFeedRun.mockRejectedValue(new Error('job expired'));
+
+    const { queryClient, result } = renderRefreshHook('job-4');
+
+    await waitFor(() => expect(result.current.isRunning).toBe(false));
+
+    expect(queryClient.getQueryData(feedRunKeys.active('1'))).toBeNull();
+    expect(toastAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Couldn't track the ranking run" }),
+    );
+  });
+
+  it('settles a new run that reuses a job id already settled this mount', async () => {
+    getFeedRun.mockResolvedValue(completedRun);
+    createFeedRun.mockResolvedValue({ jobId: completedRun.jobId });
+
+    toastAdd.mockClear();
+
+    const { queryClient, result } = renderRefreshHook(completedRun.jobId);
+
+    await waitFor(() => expect(toastAdd).toHaveBeenCalledTimes(1));
+
+    act(() => result.current.refresh());
+
+    await waitFor(() => expect(toastAdd).toHaveBeenCalledTimes(2));
+    expect(queryClient.getQueryData(feedRunKeys.active('1'))).toBeNull();
+  });
+
   it('tracks the run it enqueues so the button stays disabled until it settles', async () => {
     createFeedRun.mockResolvedValue({ jobId: 'job-3' });
     getFeedRun.mockResolvedValue({ jobId: 'job-3', status: 'active' });

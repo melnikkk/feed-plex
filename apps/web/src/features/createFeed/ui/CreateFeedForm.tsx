@@ -196,3 +196,5 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
     </form>
   );
 };
+
+export default CreateFeedForm;

@@ -13,11 +13,11 @@ import {
   EmptyTitle,
 } from '@/shared/ui';
 
-export const FeedsErrorState: FC<ErrorComponentProps> = ({ reset }) => {
+export const FeedPageErrorState: FC<ErrorComponentProps> = ({ reset }) => {
   const queryClient = useQueryClient();
 
   const retry = () => {
-    void queryClient.resetQueries({ queryKey: feedKeys.lists() });
+    void queryClient.resetQueries({ queryKey: feedKeys.all });
     reset();
   };
 
@@ -27,7 +27,7 @@ export const FeedsErrorState: FC<ErrorComponentProps> = ({ reset }) => {
         <EmptyMedia variant="icon">
           <TriangleAlert />
         </EmptyMedia>
-        <EmptyTitle>Couldn't load feeds</EmptyTitle>
+        <EmptyTitle>Couldn't load this feed</EmptyTitle>
         <EmptyDescription>Something went wrong reaching the API.</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

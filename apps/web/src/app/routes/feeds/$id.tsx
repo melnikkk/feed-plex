@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { feedArticlesQueryOptions } from '@/entities/article';
@@ -26,16 +25,11 @@ export const Route = createFileRoute('/feeds/$id')({
 
 function FeedRoute() {
   const { id } = Route.useParams();
-  const { data: feed } = useQuery(feedQueryOptions(id));
   const { mutate: markFeedViewed } = useMarkFeedViewed();
 
   useEffect(() => {
     markFeedViewed(id);
   }, [id, markFeedViewed]);
-
-  if (!feed) {
-    return null;
-  }
 
   return <FeedPage feedId={id} />;
 }

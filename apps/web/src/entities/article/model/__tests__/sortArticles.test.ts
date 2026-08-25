@@ -47,6 +47,7 @@ describe('isArticleSortOption', () => {
     { value: 'relevance', expected: true },
     { value: 'newest', expected: true },
     { value: 'name', expected: false },
+    { value: 'toString', expected: false },
     { value: 42, expected: false },
   ])('returns $expected for $value', ({ value, expected }) => {
     expect(isArticleSortOption(value)).toBe(expected);

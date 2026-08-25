@@ -172,6 +172,26 @@ describe('FeedPage', () => {
     expect(screen.getByRole('link', { name: /Ars story/ })).toBeInTheDocument();
   });
 
+  it('paints the feed header while the articles are still loading', async () => {
+    getFeed.mockResolvedValue(feed);
+    getFeedArticles.mockReturnValue(new Promise(() => {}));
+
+    renderFeedPage();
+
+    expect(await screen.findByRole('heading', { name: 'AI news' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Bigger model/ })).not.toBeInTheDocument();
+  });
+
+  it('falls back to the error boundary when the feed itself fails', async () => {
+    getFeed.mockRejectedValue(new Error('boom'));
+    getFeedArticles.mockResolvedValue({ runId: null, completedAt: null, articles: [] });
+
+    renderFeedPage();
+
+    expect(await screen.findByText("Couldn't load this feed")).toBeInTheDocument();
+  });
+
   it('offers a retry when the articles request fails', async () => {
     getFeed.mockResolvedValue(feed);
     getFeedArticles.mockRejectedValue(new Error('boom'));

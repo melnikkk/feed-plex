@@ -34,7 +34,11 @@ const renderDialog = () =>
 const openDialog = async () => {
   fireEvent.click(screen.getByRole('button', { name: 'Add feed' }));
 
-  return screen.findByRole('dialog');
+  const dialog = await screen.findByRole('dialog');
+
+  await screen.findByLabelText('Name');
+
+  return dialog;
 };
 
 const fillValidForm = () => {

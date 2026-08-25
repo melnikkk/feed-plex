@@ -138,6 +138,28 @@ describe('FeedsPage', () => {
     expect(screen.queryByRole('textbox', { name: 'Search feeds' })).not.toBeInTheDocument();
   });
 
+  it('keeps a failed refetch out of the error boundary so filters survive', async () => {
+    getFeeds.mockResolvedValue([
+      buildFeed({ id: '1', name: 'Frontend Weekly' }),
+      buildFeed({ id: '2', name: 'Backend Digest' }),
+    ]);
+
+    renderFeedsPage();
+
+    fireEvent.change(await screen.findByRole('textbox', { name: 'Search feeds' }), {
+      target: { value: 'backend' },
+    });
+
+    getFeeds.mockRejectedValue(new Error('boom'));
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh' }));
+
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh' })).not.toBeDisabled());
+
+    expect(screen.queryByText("Couldn't load feeds")).not.toBeInTheDocument();
+    expect(screen.getByRole('textbox', { name: 'Search feeds' })).toHaveValue('backend');
+    expect(screen.getByRole('link', { name: 'Backend Digest' })).toBeInTheDocument();
+  });
+
   it('offers a retry when the request fails', async () => {
     getFeeds.mockRejectedValue(new Error('boom'));
 

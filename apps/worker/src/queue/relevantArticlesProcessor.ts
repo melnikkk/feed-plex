@@ -1,6 +1,6 @@
 import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-plex/contracts';
 import { getFeedById, saveSuggestionRun } from '@feed-plex/database';
-import type { Job } from 'bullmq';
+import { UnrecoverableError, type Job } from 'bullmq';
 import { db } from '@/db';
 import { relevantArticlesWorkflow } from '@/mastra/workflow';
 
@@ -8,13 +8,13 @@ export const processRelevantArticlesJob = async (
   job: Job<RelevantArticlesJobData>,
 ): Promise<RelevantArticlesJobResult> => {
   if (!db) {
-    throw new Error('DATABASE_URL is required to process feed-scoped runs');
+    throw new UnrecoverableError('DATABASE_URL is required to process feed-scoped runs');
   }
 
   const feed = await getFeedById(db, job.data.feedId);
 
   if (!feed) {
-    throw new Error(`Feed not found: ${job.data.feedId}`);
+    throw new UnrecoverableError(`Feed not found: ${job.data.feedId}`);
   }
 
   const { sources, interests } = feed;
@@ -29,7 +29,7 @@ export const processRelevantArticlesJob = async (
   const rankedArticles = result.result.rankedArticles;
 
   if (!job.id) {
-    throw new Error('Cannot persist a suggestion run for a job without an id');
+    throw new UnrecoverableError('Cannot persist a suggestion run for a job without an id');
   }
 
   await saveSuggestionRun(db, {
