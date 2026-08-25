@@ -2,7 +2,6 @@ import type { RelevantArticlesJobData, RelevantArticlesJobResult } from '@feed-p
 import { getFeedById, saveSuggestionRun } from '@feed-plex/database';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
-import { logger } from '@/logger';
 import { relevantArticlesWorkflow } from '@/mastra/workflow';
 
 export const processRelevantArticlesJob = async (
@@ -29,19 +28,17 @@ export const processRelevantArticlesJob = async (
 
   const rankedArticles = result.result.rankedArticles;
 
-  if (job.id) {
-    try {
-      await saveSuggestionRun(db, {
-        jobId: job.id,
-        feedId: feed.id,
-        sources,
-        interests,
-        rankedArticles,
-      });
-    } catch (error) {
-      logger.error({ err: error }, `Failed to persist suggestion run ${job.id}`);
-    }
+  if (!job.id) {
+    throw new Error('Cannot persist a suggestion run for a job without an id');
   }
+
+  await saveSuggestionRun(db, {
+    jobId: job.id,
+    feedId: feed.id,
+    sources,
+    interests,
+    rankedArticles,
+  });
 
   return rankedArticles;
 };

@@ -14,6 +14,7 @@ import {
   markFeedViewedHandler,
   updateFeedHandler,
 } from '@/routes/feeds/handlers';
+import { feedArticlesRoutes } from '@/routes/feeds/articles/route';
 import { feedRunsRoutes } from '@/routes/feeds/runs/route';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 
@@ -65,6 +66,8 @@ export const feedsRoutes: FastifyPluginAsyncZod = async (app) => {
     },
     markFeedViewedHandler,
   );
+
+  app.register(feedArticlesRoutes, { prefix: '/:feedId/articles' });
 
   app.register(feedRunsRoutes, { prefix: '/:feedId/runs' });
 };

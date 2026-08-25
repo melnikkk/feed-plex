@@ -1,0 +1,48 @@
+import type { Feed } from '@feed-plex/contracts';
+import { Link } from '@tanstack/react-router';
+import { ArrowLeft, Rss } from 'lucide-react';
+import type { FC } from 'react';
+import { FeedInterestBadges } from '@/entities/feed';
+import { RefreshArticlesButton } from '@/features/refreshFeedArticles';
+import { formatRelativeTime } from '@/shared/lib';
+
+interface Props {
+  feed: Feed;
+  completedAt: string | null;
+  isRunning: boolean;
+  onRefresh: () => void;
+}
+
+export const FeedPageHeader: FC<Props> = ({ feed, completedAt, isRunning, onRefresh }) => (
+  <div className="flex flex-col gap-4">
+    <Link
+      to="/feeds"
+      className="inline-flex w-fit items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+    >
+      <ArrowLeft className="size-3.5" />
+      All feeds
+    </Link>
+
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-col gap-2">
+        <h1 className="font-heading text-2xl font-medium tracking-tight">{feed.name}</h1>
+        <p className="text-xs text-muted-foreground">
+          {feed.description ?? 'Articles ranked against this feed’s interest profile.'}
+        </p>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Rss className="size-3.5" />
+            {feed.sources.length} {feed.sources.length === 1 ? 'source' : 'sources'}
+          </span>
+          <span aria-hidden>·</span>
+          <span>
+            {completedAt ? `Ranked ${formatRelativeTime(completedAt)}` : 'Not ranked yet'}
+          </span>
+        </div>
+      </div>
+      <RefreshArticlesButton isRunning={isRunning} onRefresh={onRefresh} />
+    </div>
+
+    <FeedInterestBadges interests={feed.interests} limit={6} />
+  </div>
+);
