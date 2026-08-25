@@ -1,4 +1,4 @@
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import type { DbClient } from '../../client';
 import { articles, interests, rankedArticleScores, sources, suggestionRuns } from '../../schema';
 import type { SaveSuggestionRunInput } from './types';
@@ -52,13 +52,22 @@ export const saveSuggestionRun = async (
         });
     }
 
+    // BullMQ job ids restart at 1 whenever Redis loses its state, so an id can collide with an
+    // older run: overwrite every column and drop the previous scores instead of merging into them.
     await tx
       .insert(suggestionRuns)
       .values({ id: jobId, feedId, status: 'completed' })
       .onConflictDoUpdate({
         target: suggestionRuns.id,
-        set: { status: sql`excluded.status`, completedAt: sql`now()` },
+        set: {
+          feedId: sql`excluded.feed_id`,
+          status: sql`excluded.status`,
+          createdAt: sql`now()`,
+          completedAt: sql`now()`,
+        },
       });
+
+    await tx.delete(rankedArticleScores).where(eq(rankedArticleScores.suggestionRunId, jobId));
 
     if (rankedArticles.length === 0) {
       return;

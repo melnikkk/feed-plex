@@ -1,0 +1,2 @@
+CREATE INDEX "ranked_article_scores_run_id_rank_idx" ON "ranked_article_scores" USING btree ("suggestion_run_id","rank");--> statement-breakpoint
+CREATE INDEX "suggestion_runs_feed_id_created_at_idx" ON "suggestion_runs" USING btree ("feed_id","created_at");

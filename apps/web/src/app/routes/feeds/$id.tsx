@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, notFound } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { feedArticlesQueryOptions } from '@/entities/article';
 import { feedQueryOptions } from '@/entities/feed';
 import { useMarkFeedViewed } from '@/features/markFeedViewed';
-import { WorkInProgressPage } from '@/pages/workInProgress';
+import { FeedPage } from '@/pages/feed';
 import { ApiError } from '@/shared/api';
 
 export const Route = createFileRoute('/feeds/$id')({
   loader: async ({ params, context }) => {
+    void context.queryClient.prefetchQuery(feedArticlesQueryOptions(params.id));
+
     try {
       await context.queryClient.ensureQueryData(feedQueryOptions(params.id));
     } catch (error) {
@@ -34,5 +37,5 @@ function FeedRoute() {
     return null;
   }
 
-  return <WorkInProgressPage />;
+  return <FeedPage feedId={id} />;
 }

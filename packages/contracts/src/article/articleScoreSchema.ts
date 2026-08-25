@@ -8,3 +8,5 @@ export const articleScoreSchema = z.object({
   noveltyPenalty: z.number(),
   diversityAdjustment: z.number(),
 });
+
+export type ArticleScore = z.infer<typeof articleScoreSchema>;

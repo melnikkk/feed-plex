@@ -1,0 +1,35 @@
+import { RefreshCw, TriangleAlert } from 'lucide-react';
+import type { FC } from 'react';
+import { cn } from '@/shared/lib';
+import {
+  Button,
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/shared/ui';
+
+interface Props {
+  isRetrying: boolean;
+  onRetry: () => void;
+}
+
+export const FeedArticlesErrorState: FC<Props> = ({ isRetrying, onRetry }) => (
+  <Empty className="border border-dashed py-16">
+    <EmptyHeader>
+      <EmptyMedia variant="icon">
+        <TriangleAlert />
+      </EmptyMedia>
+      <EmptyTitle>Couldn't load articles</EmptyTitle>
+      <EmptyDescription>Something went wrong reaching the API.</EmptyDescription>
+    </EmptyHeader>
+    <EmptyContent>
+      <Button variant="outline" onClick={onRetry} disabled={isRetrying}>
+        <RefreshCw data-icon="inline-start" className={cn(isRetrying && 'animate-spin')} />
+        Try again
+      </Button>
+    </EmptyContent>
+  </Empty>
+);
