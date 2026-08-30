@@ -62,7 +62,10 @@ export const buildApp = () => {
 
   app.register(dbPlugin);
 
-  app.register(cors, { origin: [env.CORS_ORIGIN] });
+  app.register(cors, {
+    origin: [env.CORS_ORIGIN],
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+  });
 
   app.register(errorHandlerPlugin);
 
