@@ -30,6 +30,24 @@ describe('buildApp', () => {
     expect(response.headers['access-control-allow-origin']).toBe('http://localhost:5173');
   });
 
+  it.each(['DELETE', 'PUT'])(
+    'allows %s in preflight responses for the configured origin',
+    async (method) => {
+      app = buildApp();
+
+      const response = await app.inject({
+        method: 'OPTIONS',
+        url: '/api/feeds/00000000-0000-4000-8000-000000000000',
+        headers: {
+          origin: 'http://localhost:5173',
+          'access-control-request-method': method,
+        },
+      });
+
+      expect(response.headers['access-control-allow-methods']).toContain(method);
+    },
+  );
+
   it('rejects preflight requests from an unconfigured origin', async () => {
     app = buildApp();
 
