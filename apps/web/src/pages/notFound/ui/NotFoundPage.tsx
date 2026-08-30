@@ -11,8 +11,8 @@ export const NotFoundPage: FC = () => {
           <CardDescription>This page doesn't exist.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="outline" size="sm" render={<Link to="/" />}>
-            Back to home
+          <Button variant="outline" size="sm" render={<Link to="/feeds" />}>
+            Back to feeds
           </Button>
         </CardContent>
       </Card>

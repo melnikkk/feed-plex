@@ -75,11 +75,7 @@ export const FeedsPage: FC = () => {
   return (
     <main className="min-h-screen">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 pt-16 pb-12">
-        <FeedsPageHeader
-          feedCount={feeds?.length ?? 0}
-          isRefreshing={isFetching}
-          onRefresh={() => void refetch()}
-        />
+        <FeedsPageHeader feedCount={feeds?.length ?? 0} />
         {hasFeeds && (
           <FeedsToolbar
             search={search}
