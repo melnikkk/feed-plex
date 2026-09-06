@@ -4,6 +4,7 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     environment: 'jsdom',
+    environmentOptions: { jsdom: { url: 'http://localhost:3000' } },
     setupFiles: ['./src/testSetup.ts'],
     include: ['src/**/__tests__/**/*.test.{ts,tsx}'],
     restoreMocks: true,

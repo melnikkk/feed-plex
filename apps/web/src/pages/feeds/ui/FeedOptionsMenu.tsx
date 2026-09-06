@@ -5,6 +5,7 @@ import type { FC, MouseEvent } from 'react';
 import { useState } from 'react';
 import { DeleteFeedDialog, DeleteFeedMenuItem } from '@/features/deleteFeed';
 import { MarkFeedViewedMenuItem } from '@/features/markFeedViewed';
+import { EditFeedDialog, EditFeedMenuItem } from '@/features/manageFeed';
 import {
   Button,
   DropdownMenu,
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export const FeedOptionsMenu: FC<Props> = ({ feed, className }) => {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   return (
@@ -42,6 +44,7 @@ export const FeedOptionsMenu: FC<Props> = ({ feed, className }) => {
               <SquareArrowOutUpRight />
               Open in new tab
             </DropdownMenuItem>
+            <EditFeedMenuItem onSelect={() => setIsEditDialogOpen(true)} />
             <MarkFeedViewedMenuItem feed={feed} />
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -50,6 +53,8 @@ export const FeedOptionsMenu: FC<Props> = ({ feed, className }) => {
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <EditFeedDialog feed={feed} open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} />
 
       <DeleteFeedDialog
         feedId={feed.id}

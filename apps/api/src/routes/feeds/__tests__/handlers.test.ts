@@ -2,8 +2,9 @@ import type { CreateFeedInput, Feed } from '@feed-plex/contracts';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { createFeedMock, enqueueRelevantArticlesRunMock } = vi.hoisted(() => ({
+const { createFeedMock, updateFeedMock, enqueueRelevantArticlesRunMock } = vi.hoisted(() => ({
   createFeedMock: vi.fn(),
+  updateFeedMock: vi.fn(),
   enqueueRelevantArticlesRunMock: vi.fn(),
 }));
 
@@ -14,7 +15,7 @@ vi.mock('@feed-plex/database', () => ({
   getSuggestionRunResult: vi.fn(),
   listFeeds: vi.fn(),
   markFeedViewed: vi.fn(),
-  updateFeed: vi.fn(),
+  updateFeed: updateFeedMock,
   createDbClient: vi.fn(() => ({})),
   closeDbClient: vi.fn(),
 }));
@@ -80,5 +81,84 @@ describe('createFeedHandler', () => {
     expect(response.statusCode).toBe(201);
     expect(response.json()).toMatchObject({ id: createdFeed.id });
     expect(response.json().jobId).toBeUndefined();
+  });
+});
+
+const duplicateNameError = () =>
+  Object.assign(new Error('Failed query: insert into "feeds" ...\nparams: AI news'), {
+    cause: Object.assign(
+      new Error('duplicate key value violates unique constraint "feeds_name_unique"'),
+      { code: '23505', constraint_name: 'feeds_name_unique' },
+    ),
+  });
+
+describe('unique constraint handling', () => {
+  let app: FastifyInstance | undefined;
+
+  beforeEach(async () => {
+    const { buildApp } = await import('@/app');
+
+    app = buildApp();
+  });
+
+  afterEach(async () => {
+    await app?.close();
+  });
+
+  it.each([
+    {
+      route: 'POST /api/feeds',
+      mock: createFeedMock,
+      inject: { method: 'POST' as const, url: '/api/feeds', payload: createFeedInput },
+    },
+    {
+      route: 'PUT /api/feeds/:feedId',
+      mock: updateFeedMock,
+      inject: {
+        method: 'PUT' as const,
+        url: `/api/feeds/${createdFeed.id}`,
+        payload: { name: 'AI news' },
+      },
+    },
+  ])('answers $route with a 409 instead of the raw failed query', async ({ mock, inject }) => {
+    mock.mockRejectedValue(duplicateNameError());
+
+    const response = await app!.inject(inject);
+
+    expect(response.statusCode).toBe(409);
+    expect(response.json()).toEqual({ error: 'A feed with this name already exists.' });
+    expect(response.body, 'the failed statement must never reach the client').not.toContain(
+      'Failed query',
+    );
+    expect(response.body).not.toContain('feeds_name_unique');
+  });
+
+  it('keeps an unrelated database failure a 500 and withholds its message', async () => {
+    createFeedMock.mockRejectedValue(
+      new Error('Failed query: insert into "feeds" ...\nparams: secret'),
+    );
+
+    const response = await app!.inject({
+      method: 'POST',
+      url: '/api/feeds',
+      payload: createFeedInput,
+    });
+
+    expect(response.statusCode).toBe(500);
+    expect(response.json()).toEqual({ error: 'Internal Server Error' });
+    expect(response.body).not.toContain('Failed query');
+  });
+
+  it('still reports a genuine client error in its own words', async () => {
+    updateFeedMock.mockResolvedValue(null);
+
+    const response = await app!.inject({
+      method: 'PUT',
+      url: `/api/feeds/${createdFeed.id}`,
+      payload: { name: 'AI news' },
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json()).toEqual({ error: 'Feed not found' });
   });
 });

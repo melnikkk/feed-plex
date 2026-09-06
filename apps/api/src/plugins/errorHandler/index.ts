@@ -4,6 +4,7 @@ import {
   hasZodFastifySchemaValidationErrors,
   isResponseSerializationError,
 } from 'fastify-type-provider-zod';
+import { findUniqueViolation, uniqueViolationMessage } from './uniqueViolation';
 
 export const errorHandlerPlugin = fp(async (app) => {
   app.setErrorHandler<FastifyError>((error, request, reply) => {
@@ -17,8 +18,22 @@ export const errorHandlerPlugin = fp(async (app) => {
       return reply.code(500).send({ error: 'Internal Server Error' });
     }
 
+    const uniqueViolation = findUniqueViolation(error);
+
+    if (uniqueViolation) {
+      request.log.info({ err: error }, 'unique constraint violated');
+
+      return reply.code(409).send({ error: uniqueViolationMessage(uniqueViolation) });
+    }
+
     request.log.error({ err: error }, 'unhandled error');
 
-    return reply.code(error.statusCode ?? 500).send({ error: error.message });
+    const statusCode = error.statusCode ?? 500;
+
+    if (statusCode >= 500) {
+      return reply.code(statusCode).send({ error: 'Internal Server Error' });
+    }
+
+    return reply.code(statusCode).send({ error: error.message });
   });
 });

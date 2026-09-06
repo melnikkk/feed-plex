@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { CreateFeedDialog } from '@/features/createFeed';
+import { CreateFeedDialog } from '@/features/manageFeed';
 
 interface Props {
   feedCount: number;

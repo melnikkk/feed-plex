@@ -21,7 +21,12 @@ import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 export const feedsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.post(
     '/',
-    { schema: { body: createFeedInputSchema, response: { 201: createFeedResponseSchema } } },
+    {
+      schema: {
+        body: createFeedInputSchema,
+        response: { 201: createFeedResponseSchema, 409: errorResponseSchema },
+      },
+    },
     createFeedHandler,
   );
 
@@ -44,7 +49,7 @@ export const feedsRoutes: FastifyPluginAsyncZod = async (app) => {
       schema: {
         params: feedIdParamsSchema,
         body: updateFeedInputSchema,
-        response: { 200: feedSchema, 404: errorResponseSchema },
+        response: { 200: feedSchema, 404: errorResponseSchema, 409: errorResponseSchema },
       },
     },
     updateFeedHandler,
