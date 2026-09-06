@@ -9,16 +9,19 @@ import {
 import { embedMany } from 'ai';
 import { z } from 'zod';
 import { geminiEmbedding } from '@/mastra/models';
-import { cosineSimilarity } from './similarity';
 import { computeFreshnessScore } from './freshness';
 import { computeKeywordMatchRatio } from './lexical';
+import {
+  computePeakSemanticSimilarity,
+  computeSemanticSimilarity,
+  meetsSemanticRelevance,
+} from './relevance';
 import { weightedAverage } from './weightedProfile';
 import {
   SCORE_WEIGHTS,
   DEFAULT_EXPLICIT_FEEDBACK,
   DEFAULT_NOVELTY_PENALTY,
   DEFAULT_DIVERSITY_ADJUSTMENT,
-  RELEVANCE_THRESHOLD,
   ARTICLE_EMBEDDING_SUMMARY_MAX_LENGTH,
 } from './constants';
 
@@ -70,12 +73,29 @@ export const scoreArticlesStep = createStep({
 
     const articleEmbeddings = await embedTexts(articles.map(articleEmbeddingText));
 
+    if (articleEmbeddings.length !== articles.length) {
+      throw new Error(
+        `Expected ${articles.length} article embeddings, received ${articleEmbeddings.length}`,
+      );
+    }
+
+    const interestEmbeddings = interestsWithEmbeddings.map((interest) => interest.embedding);
+
     const rankedArticles = articles
-      .map((article, index) => {
-        const articleEmbedding = articleEmbeddings[index] ?? [];
+      .flatMap((article, index) => {
+        const articleEmbedding = articleEmbeddings[index];
+
+        const peakSemanticSimilarity = computePeakSemanticSimilarity(
+          interestEmbeddings,
+          articleEmbedding,
+        );
+
+        if (!meetsSemanticRelevance(peakSemanticSimilarity)) {
+          return [];
+        }
 
         const semanticSimilarity = weightedAverage(interestsWithEmbeddings, (interest) =>
-          cosineSimilarity(interest.embedding, articleEmbedding),
+          computeSemanticSimilarity(interest.embedding, articleEmbedding),
         );
         const lexicalScore = weightedAverage(interests, (interest) =>
           computeKeywordMatchRatio(articleText(article), interest.keywords),
@@ -99,9 +119,8 @@ export const scoreArticlesStep = createStep({
           SCORE_WEIGHTS.sourceAffinity * sourceAffinity +
           SCORE_WEIGHTS.explicitFeedback * DEFAULT_EXPLICIT_FEEDBACK;
 
-        return { article, score, breakdown };
+        return [{ article, score, breakdown }];
       })
-      .filter((ranked) => ranked.score >= RELEVANCE_THRESHOLD)
       .toSorted((a, b) => b.score - a.score);
 
     return { rankedArticles };
