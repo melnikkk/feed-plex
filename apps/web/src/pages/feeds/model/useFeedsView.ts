@@ -4,7 +4,7 @@ export type FeedsView = 'table' | 'grid';
 
 const FEEDS_VIEW_STORAGE_KEY = 'feed-plex:feeds-view';
 
-export const feedsViews: ReadonlyArray<FeedsView> = ['table', 'grid'];
+const feedsViews: ReadonlyArray<FeedsView> = ['table', 'grid'];
 
 export const isFeedsView = (value: unknown): value is FeedsView =>
   feedsViews.some((view) => view === value);

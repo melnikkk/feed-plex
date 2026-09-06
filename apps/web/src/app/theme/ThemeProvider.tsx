@@ -5,7 +5,7 @@ import type { Theme } from './themeContext';
 import { ThemeProviderContext } from './themeContext';
 
 // Must match the inline anti-flash script in index.html.
-export const THEME_STORAGE_KEY = 'feedplex-theme';
+const THEME_STORAGE_KEY = 'feedplex-theme';
 
 function applyTheme(theme: Theme) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
