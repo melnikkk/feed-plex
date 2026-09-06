@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": ["apps/web/src/app/routeTree.gen.ts", ".agents/**"],
+  "ignoreDependencies": ["pino-pretty"],
+  "workspaces": {
+    "apps/worker": {
+      "entry": ["src/mastra/index.ts"]
+    }
+  }
+}
