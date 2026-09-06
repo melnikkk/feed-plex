@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Rss } from 'lucide-react';
 import type { FC } from 'react';
 import { FeedInterestBadges } from '@/entities/feed';
+import { EditFeedButton } from '@/features/manageFeed';
 import { RefreshArticlesButton } from '@/features/refreshFeedArticles';
 import { formatRelativeTime } from '@/shared/lib';
 
@@ -27,7 +28,7 @@ export const FeedPageHeader: FC<Props> = ({ feed, completedAt, isRunning, onRefr
       <div className="flex min-w-0 flex-col gap-2">
         <h1 className="font-heading text-2xl font-medium tracking-tight">{feed.name}</h1>
         <p className="text-xs text-muted-foreground">
-          {feed.description ?? 'Articles ranked against this feed’s interest profile.'}
+          {feed.description || 'Articles ranked against this feed’s interest profile.'}
         </p>
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
@@ -40,7 +41,10 @@ export const FeedPageHeader: FC<Props> = ({ feed, completedAt, isRunning, onRefr
           </span>
         </div>
       </div>
-      <RefreshArticlesButton isRunning={isRunning} onRefresh={onRefresh} />
+      <div className="flex items-center gap-2">
+        <EditFeedButton feed={feed} />
+        <RefreshArticlesButton isRunning={isRunning} onRefresh={onRefresh} />
+      </div>
     </div>
 
     <FeedInterestBadges interests={feed.interests} limit={6} />

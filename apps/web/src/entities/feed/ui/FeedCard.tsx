@@ -29,7 +29,7 @@ export const FeedCard: FC<Props> = ({ feed, actions, className }) => (
         {isFeedNew(feed) && <Badge>New</Badge>}
       </CardTitle>
       <CardDescription className="line-clamp-2">
-        {feed.description ?? 'No description yet.'}
+        {feed.description || 'No description yet.'}
       </CardDescription>
       {actions && <CardAction>{actions}</CardAction>}
     </CardHeader>

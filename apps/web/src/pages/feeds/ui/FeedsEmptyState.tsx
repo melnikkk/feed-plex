@@ -1,6 +1,6 @@
 import { Rss } from 'lucide-react';
 import type { FC } from 'react';
-import { CreateFeedDialog } from '@/features/createFeed';
+import { CreateFeedDialog } from '@/features/manageFeed';
 import {
   Empty,
   EmptyContent,

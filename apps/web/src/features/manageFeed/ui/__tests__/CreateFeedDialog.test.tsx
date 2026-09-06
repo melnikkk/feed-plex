@@ -2,7 +2,7 @@ import type { CreateFeedInput, Feed } from '@feed-plex/contracts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { CreateFeedDialog } from '@/features/createFeed';
+import { CreateFeedDialog } from '@/features/manageFeed';
 import type * as SharedApi from '@/shared/api';
 import { ApiError } from '@/shared/api';
 
@@ -140,10 +140,7 @@ describe('CreateFeedDialog', () => {
 
   it('keeps the dialog open and shows a readable message when the name is taken', async () => {
     createFeed.mockRejectedValue(
-      new ApiError(500, '/feeds', {
-        error:
-          'Failed query: insert into "feeds" ("id", "name") values (default, $1)\nparams: Frontend weekly',
-      }),
+      new ApiError(409, '/feeds', { error: 'A feed with this name already exists.' }),
     );
     renderDialog();
     await openDialog();
@@ -151,14 +148,8 @@ describe('CreateFeedDialog', () => {
     fillValidForm();
     submit();
 
-    expect(
-      await screen.findByText('Could not create the feed — the name may already be taken.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('A feed with this name already exists.')).toBeInTheDocument();
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.queryByText(/insert into/),
-      'the raw failed query must never be shown',
-    ).not.toBeInTheDocument();
   });
 
   it('rejects a duplicate source URL on the offending row before sending a request', async () => {

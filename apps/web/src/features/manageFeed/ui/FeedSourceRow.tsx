@@ -12,7 +12,7 @@ interface Props {
   onRemove: () => void;
 }
 
-export const CreateFeedSourceRow: FC<Props> = ({
+export const FeedSourceRow: FC<Props> = ({
   id,
   value,
   errors,

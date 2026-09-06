@@ -1,15 +1,12 @@
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { Plus } from 'lucide-react';
-import type { FC } from 'react';
-import { createFeedErrorMessage } from '@/features/createFeed/model/createFeedErrorMessage';
+import type { FC, ReactNode } from 'react';
 import {
-  createFeedFormSchema,
-  emptyCreateFeedForm,
-  emptyCreateFeedInterest,
-  emptyCreateFeedSource,
-  toCreateFeedInput,
-} from '@/features/createFeed/model/createFeedForm';
-import { useCreateFeed } from '@/features/createFeed/model/useCreateFeed';
+  emptyFeedInterest,
+  emptyFeedSource,
+  feedFormSchema,
+  type FeedFormValues,
+} from '@/features/manageFeed/model/feedForm';
 import {
   Button,
   DialogClose,
@@ -23,34 +20,32 @@ import {
   FieldSet,
   Input,
   Textarea,
-  toast,
 } from '@/shared/ui';
-import { CreateFeedInterestRow } from './CreateFeedInterestRow';
-import { CreateFeedSourceRow } from './CreateFeedSourceRow';
+import { FeedInterestRow } from './FeedInterestRow';
+import { FeedSourceRow } from './FeedSourceRow';
 
 interface Props {
-  onCreated: () => void;
+  defaultValues: FeedFormValues;
+  submitLabel: string;
+  submittingLabel: string;
+  errorMessage: string | null;
+  onSubmit: (values: FeedFormValues) => Promise<void>;
+  children?: ReactNode;
 }
 
-export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
-  const createFeedMutation = useCreateFeed();
-
+export const FeedForm: FC<Props> = ({
+  defaultValues,
+  submitLabel,
+  submittingLabel,
+  errorMessage,
+  onSubmit,
+  children,
+}) => {
   const form = useForm({
-    defaultValues: emptyCreateFeedForm,
+    defaultValues,
     validationLogic: revalidateLogic(),
-    validators: { onDynamic: createFeedFormSchema },
-    onSubmit: async ({ value }) => {
-      const feed = await createFeedMutation
-        .mutateAsync(toCreateFeedInput(value))
-        .catch(() => undefined);
-
-      if (!feed) {
-        return;
-      }
-
-      toast.add({ title: 'Feed created', description: feed.name });
-      onCreated();
-    },
+    validators: { onDynamic: feedFormSchema },
+    onSubmit: ({ value }) => onSubmit(value).catch(() => undefined),
   });
 
   return (
@@ -107,7 +102,7 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
                   // oxlint-disable-next-line react/no-array-index-key
                   <form.Field key={index} name={`sources[${index}].url`}>
                     {(field) => (
-                      <CreateFeedSourceRow
+                      <FeedSourceRow
                         id={field.name}
                         value={field.state.value}
                         errors={field.state.meta.errors}
@@ -124,7 +119,7 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
                   variant="outline"
                   size="sm"
                   className="self-start"
-                  onClick={() => sourcesField.pushValue(emptyCreateFeedSource)}
+                  onClick={() => sourcesField.pushValue(emptyFeedSource)}
                 >
                   <Plus data-icon="inline-start" />
                   Add source
@@ -146,7 +141,7 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
                     {(topicField) => (
                       <form.Field name={`interests[${index}].keywords`}>
                         {(keywordsField) => (
-                          <CreateFeedInterestRow
+                          <FeedInterestRow
                             topicId={topicField.name}
                             keywordsId={keywordsField.name}
                             topic={topicField.state.value}
@@ -168,7 +163,7 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
                   variant="outline"
                   size="sm"
                   className="self-start"
-                  onClick={() => interestsField.pushValue(emptyCreateFeedInterest)}
+                  onClick={() => interestsField.pushValue(emptyFeedInterest)}
                 >
                   <Plus data-icon="inline-start" />
                   Add interest
@@ -178,9 +173,9 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
           )}
         </form.Field>
 
-        {createFeedMutation.isError && (
-          <FieldError>{createFeedErrorMessage(createFeedMutation.error)}</FieldError>
-        )}
+        {children}
+
+        {errorMessage && <FieldError>{errorMessage}</FieldError>}
       </FieldGroup>
 
       <DialogFooter className="mt-6">
@@ -188,7 +183,7 @@ export const CreateFeedForm: FC<Props> = ({ onCreated }) => {
         <form.Subscribe selector={(state) => state.isSubmitting}>
           {(isSubmitting) => (
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating…' : 'Create feed'}
+              {isSubmitting ? submittingLabel : submitLabel}
             </Button>
           )}
         </form.Subscribe>

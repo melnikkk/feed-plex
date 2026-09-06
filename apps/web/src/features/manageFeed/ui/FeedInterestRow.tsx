@@ -15,7 +15,7 @@ interface Props {
   onRemove: () => void;
 }
 
-export const CreateFeedInterestRow: FC<Props> = ({
+export const FeedInterestRow: FC<Props> = ({
   topicId,
   keywordsId,
   topic,
