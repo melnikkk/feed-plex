@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createFeed, deleteFeed, getFeed, getHealth, markFeedViewed } from '@/shared/api';
+import {
+  NetworkError,
+  createFeed,
+  deleteFeed,
+  getFeed,
+  getHealth,
+  markFeedViewed,
+} from '@/shared/api';
 
 describe('apiClient', () => {
   beforeEach(() => {
@@ -21,6 +28,12 @@ describe('apiClient', () => {
     vi.mocked(fetch).mockResolvedValue(new Response(null, { status: 500 }));
 
     await expect(getHealth()).rejects.toThrow('Request to /health failed with status 500');
+  });
+
+  it('throws a NetworkError when the server is unreachable', async () => {
+    vi.mocked(fetch).mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(getHealth()).rejects.toBeInstanceOf(NetworkError);
   });
 
   describe('deleteFeed', () => {

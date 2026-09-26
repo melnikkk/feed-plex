@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { RefreshCw, TriangleAlert } from 'lucide-react';
 import type { FC } from 'react';
 import { cn } from '@/shared/lib';
@@ -17,19 +18,22 @@ interface Props {
   onRetry: () => void;
 }
 
-export const FeedArticlesErrorState: FC<Props> = ({ reason, isRetrying, onRetry }) => (
+export const FeedErrorState: FC<Props> = ({ reason, isRetrying, onRetry }) => (
   <Empty className="border border-dashed py-16">
     <EmptyHeader>
       <EmptyMedia variant="icon">
         <TriangleAlert />
       </EmptyMedia>
-      <EmptyTitle>Couldn't load articles</EmptyTitle>
+      <EmptyTitle>Couldn't load this feed</EmptyTitle>
       <EmptyDescription>{reason}</EmptyDescription>
     </EmptyHeader>
-    <EmptyContent>
+    <EmptyContent className="flex-row justify-center">
       <Button variant="outline" onClick={onRetry} disabled={isRetrying}>
         <RefreshCw data-icon="inline-start" className={cn(isRetrying && 'animate-spin')} />
         Try again
+      </Button>
+      <Button variant="ghost" render={<Link to="/feeds" />}>
+        Back to feeds
       </Button>
     </EmptyContent>
   </Empty>

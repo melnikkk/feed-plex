@@ -10,8 +10,16 @@ export class ApiError extends Error {
   }
 }
 
+export class NetworkError extends Error {
+  constructor(path: string, options?: ErrorOptions) {
+    super(`Request to ${path} could not reach the server`, options);
+  }
+}
+
 export const request = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  const response = await fetch(`${env.VITE_API_URL}${path}`, init);
+  const response = await fetch(`${env.VITE_API_URL}${path}`, init).catch((cause: unknown) => {
+    throw new NetworkError(path, { cause });
+  });
 
   if (!response.ok) {
     const body = await response.json().catch(() => undefined);

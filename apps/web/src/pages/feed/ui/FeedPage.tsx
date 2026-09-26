@@ -1,5 +1,5 @@
 import type { FeedArticlesResponse, RankedArticle } from '@feed-plex/contracts';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import type { FC, ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import {
@@ -11,6 +11,7 @@ import {
 } from '@/entities/article';
 import { feedQueryOptions } from '@/entities/feed';
 import { useRefreshFeedArticles } from '@/features/refreshFeedArticles';
+import { getErrorReason } from '@/shared/api';
 import { FeedArticlesEmptyState } from './FeedArticlesEmptyState';
 import { FeedArticlesErrorState } from './FeedArticlesErrorState';
 import { FeedArticlesList } from './FeedArticlesList';
@@ -19,12 +20,13 @@ import { FeedArticlesNoResultsState } from './FeedArticlesNoResultsState';
 import { FeedArticlesPendingState } from './FeedArticlesPendingState';
 import { FeedArticlesToolbar } from './FeedArticlesToolbar';
 import { FeedPageHeader } from './FeedPageHeader';
+import { FeedPageLayout } from './FeedPageLayout';
 
 interface GetContentParams {
   feedArticles: FeedArticlesResponse | undefined;
   visibleArticles: Array<RankedArticle>;
   isPending: boolean;
-  isError: boolean;
+  error: Error | null;
   isFetching: boolean;
   isRunning: boolean;
   onRefresh: () => void;
@@ -36,7 +38,7 @@ const getContent = ({
   feedArticles,
   visibleArticles,
   isPending,
-  isError,
+  error,
   isFetching,
   isRunning,
   onRefresh,
@@ -47,8 +49,14 @@ const getContent = ({
     return <FeedArticlesLoadingState />;
   }
 
-  if (isError || !feedArticles) {
-    return <FeedArticlesErrorState isRetrying={isFetching} onRetry={onRetry} />;
+  if (error || !feedArticles) {
+    return (
+      <FeedArticlesErrorState
+        reason={getErrorReason(error)}
+        isRetrying={isFetching}
+        onRetry={onRetry}
+      />
+    );
   }
 
   if (!feedArticles.runId) {
@@ -71,11 +79,11 @@ interface Props {
 }
 
 export const FeedPage: FC<Props> = ({ feedId }) => {
-  const { data: feed } = useQuery(feedQueryOptions(feedId));
+  const { data: feed } = useSuspenseQuery(feedQueryOptions(feedId));
   const {
     data: feedArticles,
     isPending,
-    isError,
+    error,
     isFetching,
     refetch,
   } = useQuery(feedArticlesQueryOptions(feedId));
@@ -90,43 +98,37 @@ export const FeedPage: FC<Props> = ({ feedId }) => {
     [feedArticles, source, sort],
   );
 
-  if (!feed) {
-    return null;
-  }
-
   const hasArticles = Boolean(feedArticles && feedArticles.articles.length > 0);
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 pt-16 pb-12">
-        <FeedPageHeader
-          feed={feed}
-          completedAt={feedArticles?.completedAt ?? null}
-          isRunning={isRunning}
-          onRefresh={refresh}
+    <FeedPageLayout>
+      <FeedPageHeader
+        feed={feed}
+        completedAt={feedArticles?.completedAt ?? null}
+        isRunning={isRunning}
+        onRefresh={refresh}
+      />
+      {hasArticles && (
+        <FeedArticlesToolbar
+          articleCount={visibleArticles.length}
+          sources={feed.sources}
+          sort={sort}
+          onSortChange={setSort}
+          source={source}
+          onSourceChange={setSource}
         />
-        {hasArticles && (
-          <FeedArticlesToolbar
-            articleCount={visibleArticles.length}
-            sources={feed.sources}
-            sort={sort}
-            onSortChange={setSort}
-            source={source}
-            onSourceChange={setSource}
-          />
-        )}
-        {getContent({
-          feedArticles,
-          visibleArticles,
-          isPending,
-          isError,
-          isFetching,
-          isRunning,
-          onRefresh: refresh,
-          onRetry: () => void refetch(),
-          onClearFilters: () => setSource(ALL_SOURCES),
-        })}
-      </div>
-    </main>
+      )}
+      {getContent({
+        feedArticles,
+        visibleArticles,
+        isPending,
+        error,
+        isFetching,
+        isRunning,
+        onRefresh: refresh,
+        onRetry: () => void refetch(),
+        onClearFilters: () => setSource(ALL_SOURCES),
+      })}
+    </FeedPageLayout>
   );
 };
