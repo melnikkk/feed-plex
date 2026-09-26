@@ -9,7 +9,8 @@ import {
 } from '@tanstack/react-router';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FeedsPage } from '@/pages/feeds';
+import { feedsQueryOptions } from '@/entities/feed';
+import { FeedsPage, FeedsPageError } from '@/pages/feeds';
 import type * as SharedApi from '@/shared/api';
 
 const getFeeds = vi.fn<() => Promise<Array<Feed>>>();
@@ -29,9 +30,16 @@ const buildFeed = (overrides: Partial<Feed> & Pick<Feed, 'id' | 'name'>): Feed =
 });
 
 const renderFeedsPage = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const rootRoute = createRootRoute();
   const routeTree = rootRoute.addChildren([
-    createRoute({ getParentRoute: () => rootRoute, path: '/feeds/', component: FeedsPage }),
+    createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/feeds/',
+      loader: () => queryClient.ensureQueryData(feedsQueryOptions()),
+      errorComponent: FeedsPageError,
+      component: FeedsPage,
+    }),
     createRoute({
       getParentRoute: () => rootRoute,
       path: '/feeds/$id',
@@ -45,9 +53,7 @@ const renderFeedsPage = () => {
   });
 
   return render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-    >
+    <QueryClientProvider client={queryClient}>
       {/* The page is typed against the app router; a throwaway tree stands in here. */}
       <RouterProvider router={router as never} />
     </QueryClientProvider>,
@@ -144,6 +150,9 @@ describe('FeedsPage', () => {
     renderFeedsPage();
 
     expect(await screen.findByText("Couldn't load feeds")).toBeInTheDocument();
+    expect(
+      screen.getByText('Something unexpected happened. Please try again.'),
+    ).toBeInTheDocument();
 
     getFeeds.mockResolvedValue([buildFeed({ id: '1', name: 'Frontend Weekly' })]);
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));

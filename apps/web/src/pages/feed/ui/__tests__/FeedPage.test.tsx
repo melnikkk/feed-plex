@@ -9,7 +9,9 @@ import {
 } from '@tanstack/react-router';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { FeedPage } from '@/pages/feed';
+import { feedQueryOptions } from '@/entities/feed';
+import { FeedPage, FeedPageError, FeedPagePending } from '@/pages/feed';
+import { ApiError } from '@/shared/api';
 import type * as SharedApi from '@/shared/api';
 
 const getFeed = vi.fn<() => Promise<Feed>>();
@@ -57,11 +59,15 @@ const buildRanked = (title: string, score: number, sourceUrl: string): RankedArt
 });
 
 const renderFeedPage = () => {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const rootRoute = createRootRoute();
   const routeTree = rootRoute.addChildren([
     createRoute({
       getParentRoute: () => rootRoute,
       path: '/feeds/$id',
+      loader: () => queryClient.ensureQueryData(feedQueryOptions('1')),
+      pendingComponent: FeedPagePending,
+      errorComponent: FeedPageError,
       component: () => <FeedPage feedId="1" />,
     }),
     createRoute({
@@ -74,12 +80,11 @@ const renderFeedPage = () => {
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({ initialEntries: ['/feeds/1'] }),
+    defaultPendingMs: 0,
   });
 
   return render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-    >
+    <QueryClientProvider client={queryClient}>
       {/* The page is typed against the app router; a throwaway tree stands in here. */}
       <RouterProvider router={router as never} />
     </QueryClientProvider>,
@@ -87,6 +92,19 @@ const renderFeedPage = () => {
 };
 
 describe('FeedPage', () => {
+  it('shows a skeleton with a way back while the feed is loading', async () => {
+    getFeed.mockReturnValue(new Promise<Feed>(() => {}));
+    getFeedArticles.mockReturnValue(new Promise<FeedArticlesResponse>(() => {}));
+
+    renderFeedPage();
+
+    expect(await screen.findByRole('link', { name: 'All feeds' })).toHaveAttribute(
+      'href',
+      '/feeds',
+    );
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument();
+  });
+
   it('lists ranked articles with their relevance score and source link', async () => {
     getFeed.mockResolvedValue(feed);
     getFeedArticles.mockResolvedValue({
@@ -179,5 +197,27 @@ describe('FeedPage', () => {
     renderFeedPage();
 
     expect(await screen.findByText("Couldn't load articles")).toBeInTheDocument();
+    expect(
+      screen.getByText('Something unexpected happened. Please try again.'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the failure reason and recovers on retry when the feed request fails', async () => {
+    getFeed.mockRejectedValueOnce(
+      new ApiError(500, '/feeds/1', { error: 'Internal Server Error' }),
+    );
+    getFeed.mockResolvedValue(feed);
+    getFeedArticles.mockResolvedValue({ runId: null, completedAt: null, articles: [] });
+
+    renderFeedPage();
+
+    expect(await screen.findByText("Couldn't load this feed")).toBeInTheDocument();
+    expect(
+      screen.getByText('The server ran into a problem. Please try again in a moment.'),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+    expect(await screen.findByRole('heading', { name: 'AI news' })).toBeInTheDocument();
   });
 });

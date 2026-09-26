@@ -12,18 +12,19 @@ import {
 } from '@/shared/ui';
 
 interface Props {
+  reason: string;
   isRetrying: boolean;
   onRetry: () => void;
 }
 
-export const FeedsErrorState: FC<Props> = ({ isRetrying, onRetry }) => (
+export const FeedsErrorState: FC<Props> = ({ reason, isRetrying, onRetry }) => (
   <Empty className="border border-dashed py-16">
     <EmptyHeader>
       <EmptyMedia variant="icon">
         <TriangleAlert />
       </EmptyMedia>
       <EmptyTitle>Couldn't load feeds</EmptyTitle>
-      <EmptyDescription>Something went wrong reaching the API.</EmptyDescription>
+      <EmptyDescription>{reason}</EmptyDescription>
     </EmptyHeader>
     <EmptyContent>
       <Button variant="outline" onClick={onRetry} disabled={isRetrying}>

@@ -1,11 +1,11 @@
 import type { Feed } from '@feed-plex/contracts';
-import { Link } from '@tanstack/react-router';
-import { ArrowLeft, Rss } from 'lucide-react';
+import { Rss } from 'lucide-react';
 import type { FC } from 'react';
 import { FeedInterestBadges } from '@/entities/feed';
 import { EditFeedButton } from '@/features/manageFeed';
 import { RefreshArticlesButton } from '@/features/refreshFeedArticles';
 import { formatRelativeTime } from '@/shared/lib';
+import { FeedBackLink } from './FeedBackLink';
 
 interface Props {
   feed: Feed;
@@ -16,13 +16,7 @@ interface Props {
 
 export const FeedPageHeader: FC<Props> = ({ feed, completedAt, isRunning, onRefresh }) => (
   <div className="flex flex-col gap-4">
-    <Link
-      to="/feeds"
-      className="inline-flex w-fit items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-    >
-      <ArrowLeft className="size-3.5" />
-      All feeds
-    </Link>
+    <FeedBackLink />
 
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div className="flex min-w-0 flex-col gap-2">
