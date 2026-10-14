@@ -23,6 +23,7 @@ vi.mock('@/shared/api', async (importOriginal) => ({
 const buildFeed = (overrides: Partial<Feed> & Pick<Feed, 'id' | 'name'>): Feed => ({
   sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
   interests: [{ topic: 'artificial intelligence', weight: 1, keywords: ['ai'] }],
+  refreshIntervalHours: null,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-20T00:00:00.000Z',
   lastViewedAt: '2026-08-21T00:00:00.000Z',

@@ -22,6 +22,7 @@ import {
   Textarea,
 } from '@/shared/ui';
 import { FeedInterestRow } from './FeedInterestRow';
+import { FeedRefreshIntervalField } from './FeedRefreshIntervalField';
 import { FeedSourceRow } from './FeedSourceRow';
 
 interface Props {
@@ -87,6 +88,16 @@ export const FeedForm: FC<Props> = ({
                 onBlur={field.handleBlur}
               />
             </Field>
+          )}
+        </form.Field>
+
+        <form.Field name="refreshInterval">
+          {(field) => (
+            <FeedRefreshIntervalField
+              id={field.name}
+              value={field.state.value}
+              onChange={field.handleChange}
+            />
           )}
         </form.Field>
 

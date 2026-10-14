@@ -1,6 +1,14 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, isNotNull, sql } from 'drizzle-orm';
 import type { DbClient } from '../../client';
-import { articles, interests, rankedArticleScores, sources, suggestionRuns } from '../../schema';
+import {
+  articles,
+  feeds,
+  interests,
+  rankedArticleScores,
+  sources,
+  suggestionRuns,
+} from '../../schema';
+import { jitteredRefreshInterval } from '../refreshSchedule';
 import type { SaveSuggestionRunInput } from './types';
 
 export const saveSuggestionRun = async (
@@ -66,6 +74,11 @@ export const saveSuggestionRun = async (
           completedAt: sql`now()`,
         },
       });
+
+    await tx
+      .update(feeds)
+      .set({ nextRefreshAt: sql`now() + ${jitteredRefreshInterval(feeds.refreshIntervalHours)}` })
+      .where(and(eq(feeds.id, feedId), isNotNull(feeds.refreshIntervalHours)));
 
     await tx.delete(rankedArticleScores).where(eq(rankedArticleScores.suggestionRunId, jobId));
 

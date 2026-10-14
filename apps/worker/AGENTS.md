@@ -17,7 +17,9 @@ ADR 002). Owns feed polling, parsing, extraction, embedding, and scoring.
 Copy `.env.example` to `.env`. `GOOGLE_GENERATIVE_AI_API_KEY` (Gemini, for embeddings) and
 `REDIS_URL` are required. `DATABASE_URL` stays optional in `env.ts` — `run.ts` shares that module
 while staying DB-free, so `relevantArticlesProcessor.ts` asserts `db` presence itself rather than
-the env schema enforcing it repo-wide.
+the env schema enforcing it repo-wide. `WORKER_CONCURRENCY` (default 4) sets how many runs one
+worker process executes in parallel; `WORKER_RUNS_PER_MINUTE` (default 30) is a BullMQ `limiter`
+shared by all replicas, capping Gemini embedding calls and source fetches when a backlog drains.
 
 ## Workflow
 
@@ -28,6 +30,16 @@ similarity, keyword overlap, freshness decay, and source affinity — the only m
 deterministic embedding lookups, never an LLM relevance judgment. The workflow is feed-agnostic
 (flat `sources`/`interests` in, per run); feed resolution to a persisted feed happens one layer
 up, in `src/queue/relevantArticlesProcessor.ts`.
+
+## Scheduled refresh
+
+`queueWorker.ts` also starts `src/scheduler/` (ADR 005) when `DATABASE_URL` is set: one global
+BullMQ job scheduler on the `feed-refresh-sweep` queue ticks every 5 minutes (plus one sweep at
+startup for catch-up) and calls `claimDueFeeds` in batches of 500 (`FOR UPDATE SKIP LOCKED`),
+enqueueing a normal relevant-articles run per due feed until a batch comes back short. Each
+`next_refresh_at` is jittered up to 5% past its interval so feeds created together drift apart.
+The schedule itself lives in Postgres (`feeds.refresh_interval_hours` / `next_refresh_at`), never
+in Redis.
 
 ## Boundary
 

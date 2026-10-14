@@ -1,10 +1,34 @@
-import type { Feed, Interest, Source, UpdateFeedInput } from '@feed-plex/contracts';
+import type {
+  Feed,
+  Interest,
+  RefreshIntervalHours,
+  Source,
+  UpdateFeedInput,
+} from '@feed-plex/contracts';
 import { and, eq, notInArray, sql } from 'drizzle-orm';
 import type { DbClient } from '../../client';
-import { feeds, interests, sources } from '../../schema';
+import { feeds, interests, sources, suggestionRuns } from '../../schema';
+import { nextRefreshAfter } from '../refreshSchedule';
 import { toFeed } from './toFeed';
 
 type DbTransaction = Parameters<Parameters<DbClient['transaction']>[0]>[0];
+
+const lastCompletedRunOrNow = sql`coalesce(
+  (
+    select max(${suggestionRuns.completedAt})
+    from ${suggestionRuns}
+    where ${suggestionRuns.feedId} = ${feeds.id} and ${suggestionRuns.status} = 'completed'
+  ),
+  now()
+)`;
+
+// The edit form always sends the interval, so only a real change may move the schedule; otherwise
+// a name-only save could pull an already-claimed refresh back into the past.
+const rescheduleIfIntervalChanged = (refreshIntervalHours: RefreshIntervalHours) => sql`case
+  when ${feeds.refreshIntervalHours} is distinct from ${refreshIntervalHours}::integer
+  then ${nextRefreshAfter(lastCompletedRunOrNow, refreshIntervalHours)}
+  else ${feeds.nextRefreshAt}
+end`;
 
 const syncSources = async (
   tx: DbTransaction,
@@ -101,6 +125,12 @@ export const updateFeed = async (
       .set({
         ...(input.name !== undefined ? { name: input.name } : {}),
         ...(input.description !== undefined ? { description: input.description } : {}),
+        ...(input.refreshIntervalHours !== undefined
+          ? {
+              refreshIntervalHours: input.refreshIntervalHours,
+              nextRefreshAt: rescheduleIfIntervalChanged(input.refreshIntervalHours),
+            }
+          : {}),
         updatedAt: sql`now()`,
       })
       .where(eq(feeds.id, feedId))

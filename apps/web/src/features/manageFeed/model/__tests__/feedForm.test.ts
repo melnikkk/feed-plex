@@ -13,6 +13,7 @@ const validValues = {
   description: 'Weekly frontend reading',
   sources: [{ url: 'https://example.com/feed.xml' }],
   interests: [{ topic: 'react', keywords: 'hooks, rsc' }],
+  refreshInterval: '24',
 };
 
 describe('feedFormSchema', () => {
@@ -103,14 +104,35 @@ describe('toCreateFeedInput', () => {
         description: '  Weekly reading  ',
         sources: [{ url: '  https://example.com/feed.xml  ' }],
         interests: [{ topic: '  react  ', keywords: 'hooks, rsc' }],
+        refreshInterval: '24',
       }),
     ).toEqual({
       name: 'Frontend weekly',
       description: 'Weekly reading',
       sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
       interests: [{ topic: 'react', weight: 0.5, keywords: ['hooks', 'rsc'] }],
+      refreshIntervalHours: 24,
     });
   });
+
+  it('defaults new feeds to a daily refresh', () => {
+    expect(emptyFeedForm.refreshInterval).toBe('24');
+  });
+
+  it.each([
+    { refreshInterval: 'off', expected: null },
+    { refreshInterval: '6', expected: 6 },
+    { refreshInterval: '12', expected: 12 },
+    { refreshInterval: '24', expected: 24 },
+    { refreshInterval: '168', expected: 168 },
+  ])(
+    'maps the "$refreshInterval" refresh option to $expected hours',
+    ({ refreshInterval, expected }) => {
+      expect(toCreateFeedInput({ ...validValues, refreshInterval }).refreshIntervalHours).toBe(
+        expected,
+      );
+    },
+  );
 
   it('omits an empty description rather than sending a blank string', () => {
     expect(toCreateFeedInput({ ...validValues, description: '   ' }).description).toBeUndefined();
@@ -156,6 +178,7 @@ const storedFeed: Feed = {
   description: 'Weekly frontend reading',
   sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 0.25 }],
   interests: [{ topic: 'react', weight: 0.9, keywords: ['hooks', 'rsc'] }],
+  refreshIntervalHours: 12,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-20T00:00:00.000Z',
 };
@@ -167,7 +190,14 @@ describe('toFeedFormValues', () => {
       description: 'Weekly frontend reading',
       sources: [{ url: 'https://example.com/feed.xml' }],
       interests: [{ topic: 'react', keywords: 'hooks, rsc' }],
+      refreshInterval: '12',
     });
+  });
+
+  it('keys a disabled refresh as "off"', () => {
+    expect(toFeedFormValues({ ...storedFeed, refreshIntervalHours: null }).refreshInterval).toBe(
+      'off',
+    );
   });
 
   it('renders a missing description as an empty field rather than undefined', () => {

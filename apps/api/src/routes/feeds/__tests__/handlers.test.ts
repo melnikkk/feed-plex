@@ -29,6 +29,7 @@ const createFeedInput: CreateFeedInput = {
   name: 'AI news',
   sources: [{ url: 'https://example.com/rss', sourceAffinity: 1 }],
   interests: [{ topic: 'llm', weight: 0.5, keywords: ['llm'] }],
+  refreshIntervalHours: 24,
 };
 
 const createdFeed: Feed = {
@@ -36,6 +37,8 @@ const createdFeed: Feed = {
   name: createFeedInput.name,
   sources: createFeedInput.sources,
   interests: createFeedInput.interests,
+  refreshIntervalHours: createFeedInput.refreshIntervalHours,
+  nextRefreshAt: '2026-08-26T00:00:00.000Z',
   createdAt: '2026-08-25T00:00:00.000Z',
   updatedAt: '2026-08-25T00:00:00.000Z',
 };

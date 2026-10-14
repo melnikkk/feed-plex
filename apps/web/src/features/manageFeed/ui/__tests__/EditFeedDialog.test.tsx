@@ -21,6 +21,7 @@ const feed: Feed = {
   description: 'Weekly frontend reading',
   sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 0.25 }],
   interests: [{ topic: 'react', weight: 0.9, keywords: ['hooks', 'rsc'] }],
+  refreshIntervalHours: 168,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-20T00:00:00.000Z',
 };
@@ -56,6 +57,7 @@ describe('EditFeedDialog', () => {
     expect(screen.getByLabelText('Source URL')).toHaveValue('https://example.com/feed.xml');
     expect(screen.getByLabelText('Interest topic')).toHaveValue('react');
     expect(screen.getByLabelText('Interest keywords')).toHaveValue('hooks, rsc');
+    expect(screen.getByLabelText('Auto-refresh')).toHaveTextContent('Weekly');
   });
 
   it('sends the edited payload and preserves the stored affinity and weight', async () => {
@@ -71,6 +73,7 @@ describe('EditFeedDialog', () => {
       description: 'Weekly frontend reading',
       sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 0.25 }],
       interests: [{ topic: 'react', weight: 0.9, keywords: ['hooks', 'rsc'] }],
+      refreshIntervalHours: 168,
     });
   });
 

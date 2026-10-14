@@ -21,6 +21,24 @@ describe('createFeedInputSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('defaults the refresh interval to daily', () => {
+    const result = createFeedInputSchema.parse(validCreateInput);
+
+    expect(result.refreshIntervalHours).toBe(24);
+  });
+
+  it.each([6, 12, 24, 168, null])('accepts a refresh interval of %s', (refreshIntervalHours) => {
+    const result = createFeedInputSchema.safeParse({ ...validCreateInput, refreshIntervalHours });
+
+    expect(result.success).toBe(true);
+  });
+
+  it.each([0, 7, 48])('rejects a refresh interval of %s hours', (refreshIntervalHours) => {
+    const result = createFeedInputSchema.safeParse({ ...validCreateInput, refreshIntervalHours });
+
+    expect(result.success).toBe(false);
+  });
 });
 
 describe('updateFeedInputSchema', () => {

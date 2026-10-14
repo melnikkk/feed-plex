@@ -6,6 +6,8 @@ const buildFeed = (overrides: Partial<FeedWithRelations> = {}): FeedWithRelation
   id: 'feed-1',
   name: 'My feed',
   description: null,
+  refreshIntervalHours: null,
+  nextRefreshAt: null,
   createdAt: new Date('2026-01-01T00:00:00Z'),
   updatedAt: new Date('2026-01-01T00:00:00Z'),
   lastViewedAt: null,
@@ -22,6 +24,8 @@ describe('toFeed', () => {
       id: 'feed-1',
       name: 'My feed',
       description: undefined,
+      refreshIntervalHours: null,
+      nextRefreshAt: undefined,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       lastViewedAt: undefined,
@@ -41,6 +45,21 @@ describe('toFeed', () => {
     const feed = toFeed(buildFeed({ lastViewedAt }));
 
     expect(feed.lastViewedAt).toEqual(expected);
+  });
+
+  it('maps a scheduled refresh', () => {
+    const feed = toFeed(
+      buildFeed({ refreshIntervalHours: 24, nextRefreshAt: new Date('2026-01-02T00:00:00Z') }),
+    );
+
+    expect(feed).toMatchObject({
+      refreshIntervalHours: 24,
+      nextRefreshAt: '2026-01-02T00:00:00.000Z',
+    });
+  });
+
+  it('rejects a refresh interval outside the presets', () => {
+    expect(() => toFeed(buildFeed({ refreshIntervalHours: 7 }))).toThrow();
   });
 
   it('preserves a non-null description', () => {

@@ -94,6 +94,7 @@ describe('apiClient', () => {
       name: 'My feed',
       sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
       interests: [{ topic: 'react', weight: 0.5, keywords: ['hooks'] }],
+      refreshIntervalHours: 24 as const,
     };
 
     it('sends a JSON POST request and returns the created feed', async () => {

@@ -35,6 +35,7 @@ const feed: Feed = {
     { url: ars, sourceAffinity: 0.8 },
   ],
   interests: [{ topic: 'artificial intelligence', weight: 1, keywords: ['ai'] }],
+  refreshIntervalHours: null,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-20T00:00:00.000Z',
 };
@@ -150,6 +151,20 @@ describe('FeedPage', () => {
 
     expect(await screen.findByText('Ranking in progress')).toBeInTheDocument();
     expect(screen.getByText('Not ranked yet')).toBeInTheDocument();
+    expect(screen.getByText('Auto-refresh off')).toBeInTheDocument();
+  });
+
+  it('shows the refresh interval and when the next refresh is due', async () => {
+    getFeed.mockResolvedValue({
+      ...feed,
+      refreshIntervalHours: 24,
+      nextRefreshAt: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
+    });
+    getFeedArticles.mockResolvedValue({ runId: null, completedAt: null, articles: [] });
+
+    renderFeedPage();
+
+    expect(await screen.findByText('Refreshes daily · next in 5 hours')).toBeInTheDocument();
   });
 
   it('shows the empty state when a run ranked nothing above the threshold', async () => {
