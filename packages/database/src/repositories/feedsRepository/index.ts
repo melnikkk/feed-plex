@@ -1,3 +1,4 @@
+export * from './claimDueFeeds';
 export * from './createFeed';
 export * from './deleteFeed';
 export * from './getFeedById';

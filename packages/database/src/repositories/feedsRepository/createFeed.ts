@@ -1,13 +1,20 @@
 import type { CreateFeedInput, Feed } from '@feed-plex/contracts';
+import { sql } from 'drizzle-orm';
 import type { DbClient } from '../../client';
 import { feeds, interests, sources } from '../../schema';
+import { nextRefreshAfter } from '../refreshSchedule';
 import { toFeed } from './toFeed';
 
 export const createFeed = async (db: DbClient, input: CreateFeedInput): Promise<Feed> => {
   return db.transaction(async (tx) => {
     const [feed] = await tx
       .insert(feeds)
-      .values({ name: input.name, description: input.description })
+      .values({
+        name: input.name,
+        description: input.description,
+        refreshIntervalHours: input.refreshIntervalHours,
+        nextRefreshAt: nextRefreshAfter(sql`now()`, input.refreshIntervalHours),
+      })
       .returning();
 
     if (!feed) {

@@ -1,8 +1,24 @@
-import type { CreateFeedInput, Feed, UpdateFeedInput } from '@feed-plex/contracts';
+import {
+  type CreateFeedInput,
+  DEFAULT_REFRESH_INTERVAL_HOURS,
+  type Feed,
+  type RefreshIntervalHours,
+  refreshIntervalHoursSchema,
+  type UpdateFeedInput,
+} from '@feed-plex/contracts';
 import { z } from 'zod';
 
 const DEFAULT_SOURCE_AFFINITY = 1;
 const DEFAULT_INTEREST_WEIGHT = 0.5;
+
+/** Select items can't hold `null` (it means "nothing selected"), so the form keys "Off" as a string. */
+const REFRESH_OFF = 'off';
+
+export const toRefreshIntervalValue = (hours: RefreshIntervalHours): string =>
+  hours === null ? REFRESH_OFF : String(hours);
+
+const toRefreshIntervalHours = (value: string): RefreshIntervalHours =>
+  value === REFRESH_OFF ? null : refreshIntervalHoursSchema.parse(Number(value));
 
 const rejectDuplicates = <T>(
   rows: Array<T>,
@@ -56,6 +72,7 @@ export const feedFormSchema = z.object({
         ctx,
       ),
     ),
+  refreshInterval: z.string(),
 });
 
 export type FeedFormValues = z.infer<typeof feedFormSchema>;
@@ -65,6 +82,7 @@ export const emptyFeedForm: FeedFormValues = {
   description: '',
   sources: [{ url: '' }],
   interests: [{ topic: '', keywords: '' }],
+  refreshInterval: toRefreshIntervalValue(DEFAULT_REFRESH_INTERVAL_HOURS),
 };
 
 export const emptyFeedSource = { url: '' };
@@ -89,6 +107,7 @@ export const toCreateFeedInput = (values: FeedFormValues): CreateFeedInput => ({
     weight: DEFAULT_INTEREST_WEIGHT,
     keywords: toKeywords(keywords),
   })),
+  refreshIntervalHours: toRefreshIntervalHours(values.refreshInterval),
 });
 
 export const toFeedFormValues = (feed: Feed): FeedFormValues => ({
@@ -99,6 +118,7 @@ export const toFeedFormValues = (feed: Feed): FeedFormValues => ({
     topic,
     keywords: keywords.join(', '),
   })),
+  refreshInterval: toRefreshIntervalValue(feed.refreshIntervalHours),
 });
 
 export const toUpdateFeedInput = (values: FeedFormValues, feed: Feed): UpdateFeedInput => {
@@ -127,5 +147,6 @@ export const toUpdateFeedInput = (values: FeedFormValues, feed: Feed): UpdateFee
         keywords: toKeywords(keywords),
       };
     }),
+    refreshIntervalHours: toRefreshIntervalHours(values.refreshInterval),
   };
 };

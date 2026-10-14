@@ -32,6 +32,7 @@ const feed: Feed = {
   name: 'AI news',
   sources: [{ url: 'https://example.com/rss', sourceAffinity: 1 }],
   interests: [{ topic: 'llm', weight: 0.5, keywords: ['llm'] }],
+  refreshIntervalHours: null,
   createdAt: '2026-08-25T00:00:00.000Z',
   updatedAt: '2026-08-25T00:00:00.000Z',
 };

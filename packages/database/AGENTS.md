@@ -3,9 +3,11 @@
 Postgres persistence via Drizzle ORM. `feeds` is the owning entity (ADR 004): `sources` and
 `interests` each carry a `feedId` FK with a composite unique constraint (`feedId` + `url`/`topic`),
 and `suggestion_runs` carries a required `feedId` FK — every run is attributed to a feed.
-`articles` stays a global, feed-unscoped content cache keyed by `link`. `feedsRepository` covers
-feed CRUD; `suggestionRunsRepository` covers upserting/querying suggestion runs and their ranked
-articles.
+`articles` stays a global, feed-unscoped content cache keyed by `link`.
+`feeds.refresh_interval_hours` (null = off) and `feeds.next_refresh_at` hold the auto-refresh
+schedule (ADR 005): `claimDueFeeds` claims due feeds atomically, and `saveSuggestionRun` advances
+`next_refresh_at` after every completed run. `feedsRepository` covers feed CRUD;
+`suggestionRunsRepository` covers upserting/querying suggestion runs and their ranked articles.
 
 ## Commands
 

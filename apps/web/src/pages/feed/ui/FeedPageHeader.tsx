@@ -6,6 +6,7 @@ import { EditFeedButton } from '@/features/manageFeed';
 import { RefreshArticlesButton } from '@/features/refreshFeedArticles';
 import { formatRelativeTime } from '@/shared/lib';
 import { FeedBackLink } from './FeedBackLink';
+import { FeedRefreshSchedule } from './FeedRefreshSchedule';
 
 interface Props {
   feed: Feed;
@@ -33,6 +34,8 @@ export const FeedPageHeader: FC<Props> = ({ feed, completedAt, isRunning, onRefr
           <span>
             {completedAt ? `Ranked ${formatRelativeTime(completedAt)}` : 'Not ranked yet'}
           </span>
+          <span aria-hidden>·</span>
+          <FeedRefreshSchedule feed={feed} />
         </div>
       </div>
       <div className="flex items-center gap-2">

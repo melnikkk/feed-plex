@@ -18,6 +18,7 @@ const createdFeed: Feed = {
   name: 'Frontend weekly',
   sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
   interests: [{ topic: 'react', weight: 0.5, keywords: ['hooks'] }],
+  refreshIntervalHours: 24,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-01T00:00:00.000Z',
 };
@@ -89,6 +90,7 @@ describe('CreateFeedDialog', () => {
       description: undefined,
       sources: [{ url: 'https://example.com/feed.xml', sourceAffinity: 1 }],
       interests: [{ topic: 'react', weight: 0.5, keywords: ['hooks'] }],
+      refreshIntervalHours: 24,
     });
   });
 

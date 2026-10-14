@@ -1,4 +1,4 @@
-import type { Feed } from '@feed-plex/contracts';
+import { type Feed, refreshIntervalHoursSchema } from '@feed-plex/contracts';
 import type { feeds, interests, sources } from '../../schema';
 
 type FeedRow = typeof feeds.$inferSelect;
@@ -14,6 +14,8 @@ export const toFeed = (feed: FeedWithRelations): Feed => ({
   id: feed.id,
   name: feed.name,
   description: feed.description ?? undefined,
+  refreshIntervalHours: refreshIntervalHoursSchema.parse(feed.refreshIntervalHours),
+  nextRefreshAt: feed.nextRefreshAt ? feed.nextRefreshAt.toISOString() : undefined,
   createdAt: feed.createdAt.toISOString(),
   updatedAt: feed.updatedAt.toISOString(),
   lastViewedAt: feed.lastViewedAt ? feed.lastViewedAt.toISOString() : undefined,

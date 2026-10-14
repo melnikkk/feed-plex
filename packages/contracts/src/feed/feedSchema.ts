@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { interestSchema } from '../interest';
 import { sourceSchema } from '../source';
+import {
+  DEFAULT_REFRESH_INTERVAL_HOURS,
+  refreshIntervalHoursSchema,
+} from './refreshIntervalSchema';
 
 export const feedSchema = z.object({
   id: z.uuid(),
@@ -8,6 +12,8 @@ export const feedSchema = z.object({
   description: z.string().optional(),
   sources: z.array(sourceSchema),
   interests: z.array(interestSchema),
+  refreshIntervalHours: refreshIntervalHoursSchema,
+  nextRefreshAt: z.string().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   lastViewedAt: z.string().optional(),
@@ -20,6 +26,7 @@ export const createFeedInputSchema = z.object({
   description: z.string().optional(),
   sources: z.array(sourceSchema).min(1),
   interests: z.array(interestSchema).min(1),
+  refreshIntervalHours: refreshIntervalHoursSchema.default(DEFAULT_REFRESH_INTERVAL_HOURS),
 });
 
 export type CreateFeedInput = z.infer<typeof createFeedInputSchema>;
@@ -33,6 +40,7 @@ export const updateFeedInputSchema = z.object({
   description: z.string().optional(),
   sources: z.array(sourceSchema).min(1).optional(),
   interests: z.array(interestSchema).min(1).optional(),
+  refreshIntervalHours: refreshIntervalHoursSchema.optional(),
 });
 
 export type UpdateFeedInput = z.infer<typeof updateFeedInputSchema>;
